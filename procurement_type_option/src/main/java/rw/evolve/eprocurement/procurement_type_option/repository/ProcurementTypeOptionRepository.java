@@ -22,7 +22,7 @@ public interface ProcurementTypeOptionRepository extends JpaRepository<Procureme
      * Retrieves a list of {ProcurementTypeOptionModel} entities that have not been soft-deleted.
      * Only Procurement Type Options with a null {deletedAt} field are returned.
      *
-     * @return A list of non-deleted {AccountTypeOptionModel} entities.
+     * @return A list of non-deleted {ProcurementTypeOptionModel} entities.
      */
     List<ProcurementTypeOptionModel> findByDeletedAtIsNull();
 }
