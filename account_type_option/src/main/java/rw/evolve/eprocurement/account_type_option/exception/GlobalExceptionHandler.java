@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import rw.evolve.eprocurement.account_type_option.dto.ResponseMessageDto;
 
 import java.time.LocalDateTime;
-
+@ControllerAdvice
 public class GlobalExceptionHandler {
     /**
      * Handles any exception and returns a standardized error response.
