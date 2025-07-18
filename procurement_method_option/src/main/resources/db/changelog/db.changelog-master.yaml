@@ -8,7 +8,7 @@ databaseChangeLog:
             schemaName: public
             columns:
               - column:
-                  name: procurement_type_option_id
+                  name: procurement_method_option_id
                   type: bigint
                   autoIncrement: true
                   constraints:

@@ -1,23 +1,23 @@
 /**
- * Entity representing a procurement method option in the database.
+ * Entity representing a Selection method option in the database.
  */
-package rw.evolve.eprocurement.procurement_method_option.model;
+package rw.evolve.eprocurement.selection_method_option.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import rw.evolve.eprocurement.procurement_method_option.model.base.GeneralTimestampBaseModel;
+import rw.evolve.eprocurement.selection_method_option.model.base.GeneralTimestampBaseModel;
 
 @Data
 @Entity
-@Table(name = "procurement_method_option_model")
+@Table(name = "selection_method_option_model")
 @EqualsAndHashCode(callSuper =false, onlyExplicitlyIncluded = true)
-public class ProcurementMethodOptionModel extends GeneralTimestampBaseModel {
+public class SelectionMethodOptionModel extends GeneralTimestampBaseModel {
 
-    /** Unique identifier for the Procurement method option. */
+    /** Unique identifier for the Selection method option. */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "procurement_method_option_id")
+    @Column(name = "selection_method_option_id")
     @EqualsAndHashCode.Include
     private Long id;
 

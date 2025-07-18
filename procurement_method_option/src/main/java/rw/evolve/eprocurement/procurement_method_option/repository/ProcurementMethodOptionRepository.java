@@ -13,17 +13,17 @@ import java.util.List;
 public interface ProcurementMethodOptionRepository extends JpaRepository<ProcurementMethodOptionModel, Long> {
 
     /**
-     * @param name of the AccountTypeOption to check if exists
-     * @return True if AccountTypeOption exist else false
+     * @param name of the ProcurementMethodOption to check if exists
+     * @return True if ProcurementMethodOption exist else false
      */
     boolean existsByName(String name);
 
 
     /**
-     * Retrieves a list of {AccountTypeOptionModel} entities that have not been soft-deleted.
-     * Only Account Type Options with a null {deletedAt} field are returned.
+     * Retrieves a list of {ProcurementMethodOptionModel} entities that have not been soft-deleted.
+     * Only Procurement method Options with a null {deletedAt} field are returned.
      *
-     * @return A list of non-deleted {AccountTypeOptionModel} entities.
+     * @return A list of non-deleted {ProcurementMethodOptionModel} entities.
      */
     List<ProcurementMethodOptionModel> findByDeletedAtIsNull();
 }
