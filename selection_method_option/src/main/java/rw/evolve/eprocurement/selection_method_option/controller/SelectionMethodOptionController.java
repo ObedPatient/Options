@@ -1,3 +1,7 @@
+/**
+ * REST API controller for managing Selection Method options
+ * Provides endpoints for creating, retrieving, deleting and updating Selection Method option data.
+ */
 package rw.evolve.eprocurement.selection_method_option.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
