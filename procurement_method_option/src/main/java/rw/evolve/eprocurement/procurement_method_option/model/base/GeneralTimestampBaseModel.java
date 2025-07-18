@@ -1,8 +1,9 @@
 /**
  * Base class providing timestamp fields for entities in the procurement system.
- * This class is used as a superclass for entities that require tracking of creation.
+ * This class is used as a superclass for entities that require tracking of creation,
  */
-package rw.evolve.eprocurement.procurement_type_option.model.base;
+package rw.evolve.eprocurement.procurement_method_option.model.base;
+
 
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
@@ -16,17 +17,17 @@ import java.time.LocalDateTime;
 @MappedSuperclass
 public class GeneralTimestampBaseModel {
 
-    /** Timestamp when the Procurement type option was created */
+    /** Timestamp when the Procurement method option was created */
     @CreationTimestamp
     @Column(name = "created_at", length = 255, nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    /** Timestamp when the Procurement type option was last updated */
+    /** Timestamp when the Procurement method option was last updated */
     @UpdateTimestamp
     @Column(name = "updated_at", length = 255)
     private LocalDateTime updatedAt;
 
-    /** Timestamp when the Procurement type option was deleted */
+    /** Timestamp when the Procurement method option was deleted */
     @Column(name = "deleted_at", length = 30)
     private LocalDateTime deletedAt;
 }

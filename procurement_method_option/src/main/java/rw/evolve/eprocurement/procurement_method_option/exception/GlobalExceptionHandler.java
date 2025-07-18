@@ -1,13 +1,13 @@
 /**
  * Handles all exceptions globally in the application.
  */
-package rw.evolve.eprocurement.procurement_type_option.exception;
+package rw.evolve.eprocurement.procurement_method_option.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import rw.evolve.eprocurement.procurement_type_option.dto.ResponseMessageDto;
+import rw.evolve.eprocurement.procurement_method_option.dto.ResponseMessageDto;
 
 import java.time.LocalDateTime;
 

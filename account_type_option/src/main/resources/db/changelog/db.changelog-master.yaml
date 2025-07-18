@@ -1,10 +1,11 @@
 databaseChangeLog:
   - changeSet:
-      id: 1
-      author: ObedPatient
+      id: 20250718-2-create-account-type-option-table
+      author: evolve
       changes:
         - createTable:
             tableName: account_type_option_model
+            schemaName: public
             columns:
               - column:
                   name: account_type_option_id
@@ -12,6 +13,7 @@ databaseChangeLog:
                   autoIncrement: true
                   constraints:
                     primaryKey: true
+                    nullable: false
               - column:
                   name: name
                   type: varchar(255)
@@ -30,6 +32,10 @@ databaseChangeLog:
               - column:
                   name: updated_at
                   type: timestamp
+                  constraints:
+                    nullable: true
               - column:
                   name: deleted_at
                   type: timestamp
+                  constraints:
+                    nullable: true

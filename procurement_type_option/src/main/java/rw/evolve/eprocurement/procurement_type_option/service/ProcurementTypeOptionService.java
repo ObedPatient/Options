@@ -43,7 +43,7 @@ public class ProcurementTypeOptionService {
 
     /**
      * Creates multiple Procurement type entities, each with a unique ID.
-     * Iterates through the provided list of Account type models
+     * Iterates through the provided list of Procurement type models
      *
      * @param procurementTypeOptionModels the list of Procurement type option models to be created
      * @return a list of saved Procurement type Option models.
@@ -62,8 +62,8 @@ public class ProcurementTypeOptionService {
     }
 
     /**
-     * Retrieves a single Account type option entity by its ID.
-     * Throws a ProcurementTypeOptionNotFoundException if the Account type option is not found or has been deleted.
+     * Retrieves a single Procurement type option entity by its ID.
+     * Throws a ProcurementTypeOptionNotFoundException if the Procurement type option is not found or has been deleted.
      *
      * @param @ProcurementTypeOption id the ID of the Procurement type option to retrieve
      * @return the Procurement type option model if found and not deleted
@@ -82,7 +82,7 @@ public class ProcurementTypeOptionService {
     /**
      * Retrieves a list of ProcurementTypeOption objects based on the provided ProcurementTypeOption IDs.
      *
-     * @param procurementTypeOptionIds A list of AccountTypeOption IDs to retrieve
+     * @param procurementTypeOptionIds A list of ProcurementTypeOption IDs to retrieve
      * @return A list of ProcurementTypeOptionModel objects that are not marked as deleted
      * @throws ProcurementTypeExistException if a ProcurementTypeOption with the given ID is not found
      */
@@ -108,7 +108,7 @@ public class ProcurementTypeOptionService {
     /**
      * Retrieve all ProcurementType Option that are not marked as deleted
      * @return a List of Procurement type option object where deleted in null
-     * @throws ProcurementTypeExistException if no Account type option found
+     * @throws ProcurementTypeExistException if no Procurement type option found
      */
     @Transactional
     public List<ProcurementTypeOptionModel> readAll(){
@@ -180,7 +180,7 @@ public class ProcurementTypeOptionService {
             ProcurementTypeOptionModel existingModel = procurementTypeOptionRepository.findById(model.getId())
                     .orElseThrow(()-> new ProcurementTypeOptionNotFoundException("Procurement type option not found with id:" + model.getId()));
             if (existingModel.getDeletedAt() !=null ){
-                throw new ProcurementTypeOptionNotFoundException("Account type option with id:" + model.getId() + "marked as deleted");
+                throw new ProcurementTypeOptionNotFoundException("Procurement type option with id:" + model.getId() + "marked as deleted");
             }
             modelMapper.map(model, existingModel);
             existingModel.setUpdatedAt(LocalDateTime.now());
@@ -265,7 +265,7 @@ public class ProcurementTypeOptionService {
     }
     /**
      * Hard deletes a Procurement type option by ID
-     * @param id ID of the fiscal year to hard delete
+     * @param id ID of the Procurement type to hard delete
      */
     @Transactional
     public void hardDeleteProcurementTypeOption(Long id){

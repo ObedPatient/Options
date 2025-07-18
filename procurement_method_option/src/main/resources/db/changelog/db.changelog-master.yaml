@@ -1,10 +1,10 @@
 databaseChangeLog:
   - changeSet:
-      id: 20250718-1-create-procurement-type-option-table
+      id: 20250718-3-create-procurement-method-option-table
       author: evolve
       changes:
         - createTable:
-            tableName: procurement_type_option_model
+            tableName: procurement_method_option_model
             schemaName: public
             columns:
               - column:

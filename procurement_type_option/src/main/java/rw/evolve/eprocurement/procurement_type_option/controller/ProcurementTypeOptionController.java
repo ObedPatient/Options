@@ -60,8 +60,8 @@ public class ProcurementTypeOptionController {
     @PostMapping("/create/one")
     public ResponseEntity<Map<String, Object>> createProcurementType(@Valid @RequestBody ProcurementTypeOptionDto procurementTypeOptionDto){
         ProcurementTypeOptionModel procurementTypeOptionModel = convertToModel(procurementTypeOptionDto);
-        ProcurementTypeOptionModel createdFiscalYearModel = procurementTypeOptionService.createProcurementType(procurementTypeOptionModel);
-        ProcurementTypeOptionDto createdFiscalYearDto = convertToDto(createdFiscalYearModel);
+        ProcurementTypeOptionModel createdprocurementTypeOptionModel = procurementTypeOptionService.createProcurementType(procurementTypeOptionModel);
+        ProcurementTypeOptionDto createdprocurementTypeOptionDto = convertToDto(createdprocurementTypeOptionModel);
         ResponseMessageDto responseMessageDto = new ResponseMessageDto(
                 "Procurement type option created successfully",
                 "OK",
@@ -69,14 +69,14 @@ public class ProcurementTypeOptionController {
                 LocalDateTime.now()
         );
         Map<String, Object> response = new HashMap<>();
-        response.put("Procurement Type Options", createdFiscalYearDto);
+        response.put("Procurement Type Options", createdprocurementTypeOptionDto);
         response.put("responseMessage", responseMessageDto);
         return ResponseEntity.ok(response);
     }
 
     /**
      * Creates multiple Procurement type options
-     * @param procurementTypeOptionDtos List of fiscal year DTOs
+     * @param procurementTypeOptionDtos List of Procurement type option DTOs
      * @return ResponseEntity containing a Map with the created list of ProcurementTypeOptionDto and a ResponseMessageDto
      */
     @Operation(summary = "Create Many Procurement types Api endpoint")
@@ -107,7 +107,7 @@ public class ProcurementTypeOptionController {
      * @param id The ID of the procurement type to retrieve, provided as a request parameter.
      * @return ResponseEntity containing a Map with the ProcurementTypeOptionDto and a ResponseMessageDto
      */
-    @Operation(summary = "Get One Fiscal Year API")
+    @Operation(summary = "Get One Procurement type  API")
     @GetMapping("/read/one/{id}")
     public ResponseEntity<Map<String, Object>> readOne(@RequestParam("ProcurementTypeOption") Long id){
         ProcurementTypeOptionModel model = procurementTypeOptionService.readOne(id);
@@ -256,7 +256,7 @@ public class ProcurementTypeOptionController {
      * Updates a procurement type by its ID, including soft-deleted records.
      *
      * @param id The ID of the procurement type to update.
-     * @param procurementTypeOptionDto The updated fiscal year data.
+     * @param procurementTypeOptionDto The updated Procurement type options data.
      * @return ResponseEntity containing a Map with the updated ProcurementTypeOptionDto and ResponseMessageEntity
      */
     @Operation(summary = "Hard update procurement type by Id Api endpoint")
@@ -279,7 +279,7 @@ public class ProcurementTypeOptionController {
     /**
      * Updates all procurement types, including soft-deleted records, based on their IDs.
      *
-     * @param procurementTypeOptionDtos The list of updated fiscal year data.
+     * @param procurementTypeOptionDtos The list of updated Procurement type options data.
      * @return ResponseEntity containing a Map with the list of updated ProcurementTypeOptionDtos and ResponseMessageEntity
      */
     @Operation(summary = "Hard update all procurement types")
@@ -291,8 +291,8 @@ public class ProcurementTypeOptionController {
         }
         List<ProcurementTypeOptionModel> updatedModels = procurementTypeOptionService.hardUpdateAll(inputModels);
         List<ProcurementTypeOptionDto> dtos = new ArrayList<>();
-        for (ProcurementTypeOptionModel fiscalYearModel: updatedModels){
-            dtos.add(convertToDto(fiscalYearModel));
+        for (ProcurementTypeOptionModel procurementTypeOptionModel: updatedModels){
+            dtos.add(convertToDto(procurementTypeOptionModel));
         }
         ResponseMessageDto responseMessageDto = new ResponseMessageDto(
                 "Procurement types Hard updated successfully",
@@ -329,7 +329,7 @@ public class ProcurementTypeOptionController {
 
     /**
      * Hard deletes a single procurement type by ID
-     * @param id ID of the fiscal year to hard delete
+     * @param id ID of the Procurement type option to hard delete
      * @return ResponseEntity containing a Map with ResponseMessageEntity
      */
     @Operation(summary = "Hard delete a single procurement type Api endpoint")
@@ -353,7 +353,7 @@ public class ProcurementTypeOptionController {
      * @param ids List of procurement type IDs to softly delete
      * @return ResponseEntity containing a Map with the list of soft deleted ProcurementTypeOptionDto and ResponseMessageEntity
      */
-    @Operation(summary = "Soft delete multiple fiscal years")
+    @Operation(summary = "Soft delete multiple Procurement type options")
     @PutMapping("/soft/delete/many")
     public ResponseEntity<Map<String, Object>> softDeleteProcurementTypeOptions(@RequestBody List<Long> ids){
         List<ProcurementTypeOptionModel> deletedProcurementTypeOptionModels = procurementTypeOptionService.softDeleteProcurementTypeOptions(ids);
@@ -375,7 +375,7 @@ public class ProcurementTypeOptionController {
     }
     /**
      * Hard deletes multiple procurement types by IDs
-     * @param ids List of fiscal year IDs to hard delete
+     * @param ids List of Procurement type options IDs to hard delete
      * @return ResponseEntity containing a Map with ResponseMessageEntity
      */
     @Operation(summary = "Hard delete multiple procurement types")
