@@ -1,0 +1,41 @@
+  databaseChangeLog:
+    - changeSet:
+        id: 20250720-11-create-prerequisites-activity-file-type-option-table
+        author: evolve
+        changes:
+          - createTable:
+              tableName: prerequisites_activity_file_type_option_model
+              schemaName: public
+              columns:
+                - column:
+                    name: prerequisites_activity_file_type_option_id
+                    type: bigint
+                    autoIncrement: true
+                    constraints:
+                      primaryKey: true
+                      nullable: false
+                - column:
+                    name: name
+                    type: varchar(255)
+                    constraints:
+                      nullable: false
+                - column:
+                    name: description
+                    type: varchar(255)
+                    constraints:
+                      nullable: false
+                - column:
+                    name: created_at
+                    type: timestamp
+                    constraints:
+                      nullable: false
+                - column:
+                    name: updated_at
+                    type: timestamp
+                    constraints:
+                      nullable: true
+                - column:
+                    name: deleted_at
+                    type: timestamp
+                    constraints:
+                      nullable: true

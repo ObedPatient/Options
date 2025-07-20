@@ -1,5 +1,5 @@
 /**
- * Repository interface for Account type option data access
+ * Repository interface for Scheme option data access
  */
 package rw.evolve.eprocurement.schemes_option.repository;
 

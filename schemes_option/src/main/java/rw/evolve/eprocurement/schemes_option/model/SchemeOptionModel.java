@@ -1,5 +1,5 @@
 /**
- * Entity representing a Selection method option in the database.
+ * Entity representing a Scheme option in the database.
  */
 package rw.evolve.eprocurement.schemes_option.model;
 
