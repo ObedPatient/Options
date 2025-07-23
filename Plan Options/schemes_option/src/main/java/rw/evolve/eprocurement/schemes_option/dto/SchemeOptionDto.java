@@ -14,7 +14,7 @@ public class SchemeOptionDto {
 
     /** Unique identifier for the scheme option */
     @JsonProperty("scheme_option_id")
-    private Long id;
+    private String id;
 
     /** name of scheme option*/
     @JsonProperty("name")

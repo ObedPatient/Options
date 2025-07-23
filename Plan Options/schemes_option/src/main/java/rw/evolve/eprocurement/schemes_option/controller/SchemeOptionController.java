@@ -1,6 +1,6 @@
 /**
- * REST API controller for managing Selection Method options
- * Provides endpoints for creating, retrieving, deleting and updating Selection Method option data.
+ * REST API controller for managing Scheme options.
+ * Handles CRUD operations for Scheme option data with soft and hard delete capabilities.
  */
 package rw.evolve.eprocurement.schemes_option.controller;
 
@@ -9,388 +9,321 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import rw.evolve.eprocurement.schemes_option.dto.ResponseMessageDto;
 import rw.evolve.eprocurement.schemes_option.dto.SchemeOptionDto;
 import rw.evolve.eprocurement.schemes_option.model.SchemeOptionModel;
 import rw.evolve.eprocurement.schemes_option.service.SchemeOptionService;
+import rw.evolve.eprocurement.schemes_option.utils.SchemeOptionIdGenerator;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("api/scheme_option")
-@Tag(name = "Scheme Option Api")
+@Tag(name = "Scheme Option API")
 public class SchemeOptionController {
-
 
     @Autowired
     private SchemeOptionService schemeOptionService;
 
     private final ModelMapper modelMapper = new ModelMapper();
 
-
     /**
-     * Converts a SchemeOptionModel to SchemeOptionDto.
-     * @param model The SchemeOptionModel to convert.
-     * @return The converted SchemeOptionDto.
+     * Converts SchemeOptionModel to SchemeOptionDto.
+     * @param model - SchemeOptionModel to convert
+     * @return      - Converted SchemeOptionDto
      */
-    private SchemeOptionDto convertToDto(SchemeOptionModel model){
+    private SchemeOptionDto convertToDto(SchemeOptionModel model) {
         return modelMapper.map(model, SchemeOptionDto.class);
     }
 
     /**
-     * Converts a SchemeOptionDto to SchemeOptionModel.
-     * @param dto The SchemeOptionDto to convert.
-     * @return The converted SchemeOptionModel.
+     * Converts SchemeOptionDto to SchemeOptionModel.
+     * @param    - dto SchemeOptionDto to convert
+     * @return   - Converted SchemeOptionModel
      */
-    private SchemeOptionModel convertToModel(SchemeOptionDto dto){
+    private SchemeOptionModel convertToModel(SchemeOptionDto dto) {
         return modelMapper.map(dto, SchemeOptionModel.class);
     }
 
     /**
-     * Creates a single Scheme option
-     * @param schemeOptionDto DTO containing Scheme option data
-     * @return ResponseEntity containing a Map with the created SchemeOptionDto and a ResponseMessageDto
+     * Creates a single Scheme option with a generated ID.
+     * @param schemeOptionDto - Scheme option data
+     * @return                - Response with success message
      */
-    @Operation(summary = "Create one Scheme option Api endpoint")
+    @Operation(summary = "Create a single Scheme option")
     @PostMapping("/create/one")
-    public ResponseEntity<Map<String, Object>> createSchemeOption(@Valid @RequestBody SchemeOptionDto schemeOptionDto){
+    public ResponseEntity<Object> save(@Valid @RequestBody SchemeOptionDto schemeOptionDto) {
         SchemeOptionModel schemeOptionModel = convertToModel(schemeOptionDto);
-        SchemeOptionModel createdSchemeOptionModel = schemeOptionService.createSchemeOption(schemeOptionModel);
-        SchemeOptionDto createdSchemeOptionDto = convertToDto(createdSchemeOptionModel);
+        schemeOptionModel.setId(SchemeOptionIdGenerator.generateId());
+        schemeOptionService.save(schemeOptionModel);
         ResponseMessageDto responseMessageDto = new ResponseMessageDto(
                 "Scheme option created successfully",
-                "OK",
-                201,
+                HttpStatus.OK + "",
                 LocalDateTime.now()
         );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Scheme Options", createdSchemeOptionDto);
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(responseMessageDto, HttpStatus.OK);
     }
 
     /**
-     * Creates multiple Scheme options
-     * @param schemeOptionDtos List of Scheme option DTOs
-     * @return ResponseEntity containing a Map with the created list of SchemeOptionDto and a ResponseMessageDto
+     * Creates multiple Scheme options with generated IDList.
+     * @param schemeOptionDtoList - List of Scheme option data
+     * @return                    - Response with success message
      */
-    @Operation(summary = "Create Many Scheme Api endpoint")
+    @Operation(summary = "Create multiple Scheme options")
     @PostMapping("/create/many")
-    public ResponseEntity<Map<String, Object>> createSchemeOptions(@Valid @RequestBody List<SchemeOptionDto> schemeOptionDtos ){
+    public ResponseEntity<Object> saveMany(@Valid @RequestBody List<SchemeOptionDto> schemeOptionDtoList) {
         List<SchemeOptionModel> schemeOptionModels = new ArrayList<>();
-        for (SchemeOptionDto dto: schemeOptionDtos){
-            schemeOptionModels.add(convertToModel(dto));
+        for (SchemeOptionDto dto : schemeOptionDtoList) {
+            SchemeOptionModel model = convertToModel(dto);
+            model.setId(SchemeOptionIdGenerator.generateId());
+            schemeOptionModels.add(model);
         }
-        List<SchemeOptionModel> createdModels = schemeOptionService.createSchemeOptions(schemeOptionModels);
-        List<SchemeOptionDto> createdSchemeDtos = new ArrayList<>();
-        for (SchemeOptionModel model: createdModels){
-            createdSchemeDtos.add(convertToDto(model));
-        }
-        ResponseMessageDto responseMessage = new ResponseMessageDto(
-                "Scheme options Created Successfully",
-                "OK",
-                201,
+        schemeOptionService.saveMany(schemeOptionModels);
+        ResponseMessageDto responseMessageDto = new ResponseMessageDto(
+                "Scheme options created successfully",
+                HttpStatus.OK + "",
                 LocalDateTime.now()
         );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Scheme Options", createdSchemeDtos);
-        response.put("responseMessage", responseMessage);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(responseMessageDto, HttpStatus.OK);
     }
+
     /**
-     * Retrieves a Scheme option by its ID, excluding soft-deleted Schemes.
-     * @param id The ID of the Scheme to retrieve, provided as a request parameter.
-     * @return ResponseEntity containing a Map with the SchemeOptionDto and a ResponseMessageDto
+     * Retrieves a Scheme option by ID (excludes soft-deleted).
+     * @param id - Scheme option ID
+     * @return   - Response with Scheme option data
      */
-    @Operation(summary = "Get One Scheme  API")
-    @GetMapping("/read/one/{id}")
-    public ResponseEntity<Map<String, Object>> readOne(@RequestParam("SchemeOptionId") Long id){
+    @Operation(summary = "Get a single Scheme option by ID")
+    @GetMapping("/read/one")
+    public ResponseEntity<Object> readOne(@RequestParam String id) {
         SchemeOptionModel model = schemeOptionService.readOne(id);
-        SchemeOptionDto dto = convertToDto(model);
+        SchemeOptionDto schemeOptionDto = convertToDto(model);
         ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Scheme option Retrieved Successfully",
-                "OK",
-                200,
+                "Scheme option retrieved successfully",
+                HttpStatus.OK + "",
                 LocalDateTime.now()
         );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Scheme Option", dto);
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(schemeOptionDto, HttpStatus.OK);
     }
 
     /**
-     * Retrieves all non-deleted Schemes.
-     * @return ResponseEntity containing a Map with a list of SchemeOptionDto and a ResponseMessageDto
+     * Retrieves all non-deleted Scheme options.
+     * @return  - Response with list of Scheme option data
      */
-    @Operation(summary = "Read all Scheme Api endpoint")
+    @Operation(summary = "Get all non-deleted Scheme options")
     @GetMapping("/read/all")
-    public ResponseEntity<Map<String, Object>> readAll(){
+    public ResponseEntity<Object> readAll() {
         List<SchemeOptionModel> schemeOptionModels = schemeOptionService.readAll();
-        List<SchemeOptionDto> schemeOptionDtos = new ArrayList<>();
-        for (SchemeOptionModel schemeOptionModel: schemeOptionModels){
-            schemeOptionDtos.add(convertToDto(schemeOptionModel));
+        List<SchemeOptionDto> schemeOptionDtoList = new ArrayList<>();
+        for (SchemeOptionModel schemeOptionModel : schemeOptionModels) {
+            schemeOptionDtoList.add(convertToDto(schemeOptionModel));
         }
-        ResponseMessageDto responseMessage = new ResponseMessageDto(
-                "Scheme options Retrieved Successfully",
-                "OK",
-                200,
+        ResponseMessageDto responseMessageDto = new ResponseMessageDto(
+                "Scheme options retrieved successfully",
+                HttpStatus.OK + "",
                 LocalDateTime.now()
         );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Scheme Options", schemeOptionDtos);
-        response.put("responseMessage", responseMessage);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(schemeOptionDtoList, HttpStatus.OK);
+
     }
 
     /**
-     * Retrieves all Schemes, including soft-deleted ones.
-     * @return ResponseEntity containing a Map with a list of SchemeDto and a ResponseMessageDto
+     * Retrieves all Scheme options, including soft-deleted.
+     * @return        - Response with list of all Scheme option data
      */
-    @Operation(summary = "Hard read all Scheme Api endpoint")
+    @Operation(summary = "Get all Scheme options, including soft-deleted")
     @GetMapping("/read/hard/all")
-    public ResponseEntity<Map<String, Object>> hardReadAll(){
+    public ResponseEntity<Object> hardReadAll() {
         List<SchemeOptionModel> models = schemeOptionService.hardReadAll();
-        List<SchemeOptionDto> dtos = new ArrayList<>();
-        for (SchemeOptionModel model: models){
-            dtos.add(convertToDto(model));
-        }
-        ResponseMessageDto responseMessage = new ResponseMessageDto(
-                "All Scheme option Retrieved Successfully",
-                "OK",
-                200,
-                LocalDateTime.now()
-        );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Scheme  options", dtos);
-        response.put("responseMessage", responseMessage);
-        return ResponseEntity.ok(response);
-    }
-    /**
-     * Retrieves multiple Scheme options  by their IDs, excluding soft-deleted records.
-     * @param ids List of Scheme year IDs
-     * @return ResponseEntity containing a Map with a list of SchemeOptionDto and a ResponseMessageDto
-     */
-    @Operation(summary = "Retrieve multiple Scheme year with their Ids Api")
-    @PostMapping("read/many")
-    public ResponseEntity<Map<String, Object>> readMany(@Valid @RequestBody List<Long> ids){
-        List<SchemeOptionModel> schemeOptionModels = schemeOptionService.readMany(ids);
-        List<SchemeOptionDto> schemeOptionDtos = new ArrayList<>();
-        for (SchemeOptionModel model: schemeOptionModels){
-            schemeOptionDtos.add(convertToDto(model));
+        List<SchemeOptionDto> schemeOptionDtoList = new ArrayList<>();
+        for (SchemeOptionModel model : models) {
+            schemeOptionDtoList.add(convertToDto(model));
         }
         ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Scheme option Retrieved Successfully",
-                "OK",
-                200,
+                "All Scheme options retrieved successfully",
+                HttpStatus.OK + "",
                 LocalDateTime.now()
         );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Scheme options", schemeOptionDtos);
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(schemeOptionDtoList, HttpStatus.OK);
+
     }
 
     /**
-     * Updates a Scheme by its ID, excluding soft-deleted records.
-     * @param id The ID of the Scheme year to update
-     * @param schemeOptionDto The updated Selection Method data
-     * @return ResponseEntity containing a Map with the updated SchemeDto and a ResponseMessageDto
+     * Retrieves multiple Scheme options by IDs (excludes soft-deleted).
+     * @param idList - List of Scheme option IDs
+     * @return       - Response with list of Scheme option data
      */
-    @Operation(summary = "Update One Scheme option year Api")
-    @PutMapping("/update/one/{id}")
-    public ResponseEntity<Map<String, Object>> updateOne(@Valid @RequestParam Long id,
-                                                         @Valid @RequestBody SchemeOptionDto schemeOptionDto){
-        SchemeOptionModel schemeOptionModel = schemeOptionService.updateOne(id, convertToModel((schemeOptionDto)));
-        SchemeOptionDto dto = convertToDto(schemeOptionModel);
+    @Operation(summary = "Get multiple Scheme options by IDs")
+    @PostMapping("/read/many")
+    public ResponseEntity<Object> readMany(@Valid @RequestBody List<String> idList) {
+        List<SchemeOptionModel> schemeOptionModels = schemeOptionService.readMany(idList);
+        List<SchemeOptionDto> schemeOptionDtoList = new ArrayList<>();
+        for (SchemeOptionModel model : schemeOptionModels) {
+            schemeOptionDtoList.add(convertToDto(model));
+        }
         ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Scheme option Year Updated Successfully",
-                "OK",
-                200,
+                "Scheme options retrieved successfully",
+                HttpStatus.OK + "",
                 LocalDateTime.now()
         );
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("Scheme option", dto);
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(schemeOptionDtoList, HttpStatus.OK);
     }
 
     /**
-     * Updates multiple Scheme option  based on the provided list of Scheme option DTOs.
-     * Excludes soft-deleted records from updates.
+     * Updates a Scheme option by ID (excludes soft-deleted).
      *
-     * @param schemeOptionDtos List of SchemeDto objects containing updated Scheme data
-     * @return ResponseEntity containing a Map with the list of updated SchemeDtos and ResponseMessageEntity
+     * @param schemeOptionDto - Updated Scheme option data
+     * @return                - Response with updated Scheme option data
      */
-    @Operation(summary = "Upadate multiple Scheme options Api endpoint")
+    @Operation(summary = "Update a single Scheme option by ID")
+    @PutMapping("/update/one")
+    public ResponseEntity<Object> updateOne(@Valid @RequestBody SchemeOptionDto schemeOptionDto){
+        String modelId = schemeOptionDto.getId();
+        SchemeOptionModel savedModel = schemeOptionService.readOne(modelId);
+        savedModel.setName(schemeOptionDto.getName());
+        savedModel.setDescription(schemeOptionDto.getDescription());
+        schemeOptionService.updateOne(savedModel);
+        SchemeOptionDto schemeOptionDto1 = convertToDto(savedModel);
+        return new ResponseEntity<>(schemeOptionDto1, HttpStatus.OK);
+    }
+
+    /**
+     * Updates multiple Scheme options (excludes soft-deleted).
+     * @param schemeOptionDtoList - a List of updated Scheme option data
+     * @return Response with list - of updated Scheme option data
+     */
+    @Operation(summary = "Update multiple Scheme options")
     @PutMapping("/update/many")
-    public ResponseEntity<Map<String, Object>> updateMany(@Valid @RequestBody List<SchemeOptionDto> schemeOptionDtos){
+    public ResponseEntity<Object> updateMany(@Valid @RequestBody List<SchemeOptionDto> schemeOptionDtoList) {
         List<SchemeOptionModel> inputModels = new ArrayList<>();
-        for (SchemeOptionDto dto: schemeOptionDtos){
+        for (SchemeOptionDto dto : schemeOptionDtoList) {
             inputModels.add(convertToModel(dto));
         }
-        List<SchemeOptionModel> updatedModels = schemeOptionService.updateMany((inputModels));
-        List<SchemeOptionDto> dtos = new ArrayList<>();
-        for (SchemeOptionModel model: updatedModels){
-            dtos.add(convertToDto(model));
+        List<SchemeOptionModel> updatedModels = schemeOptionService.updateMany(inputModels);
+        List<SchemeOptionDto> dtoList = new ArrayList<>();
+        for (SchemeOptionModel model : updatedModels) {
+            dtoList.add(convertToDto(model));
         }
-        ResponseMessageDto responseMessage = new ResponseMessageDto(
-                "Schemes Updated Successfully",
-                "OK",
-                200,
-                LocalDateTime.now()
-        );
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("Scheme options", dtos);
-        response.put("responseMessage", responseMessage);
-        return ResponseEntity.ok(response);
-    }
-    /**
-     * Updates a SScheme by its ID, including soft-deleted records.
-     *
-     * @param id The ID of the Scheme to update.
-     * @param schemeOptionDto The updated Scheme options data.
-     * @return ResponseEntity containing a Map with the updated SchemeOptionDto and ResponseMessageEntity
-     */
-    @Operation(summary = "Hard update Scheme by Id Api endpoint")
-    @PutMapping("/update/hard/one/{id}")
-    public ResponseEntity<Map<String, Object>> hardUpdate(@RequestParam Long id, @Valid @RequestBody SchemeOptionDto schemeOptionDto){
-        SchemeOptionModel schemeOptionModel = schemeOptionService.hardUpdateOne(id, convertToModel(schemeOptionDto));
-        SchemeOptionDto dto = convertToDto(schemeOptionModel);
-        ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Scheme Updated Successfully",
-                "OK",
-                200,
-                LocalDateTime.now()
-        );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Scheme options", dto);
-        response.put("Response Message", responseMessageDto);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(dtoList, HttpStatus.OK);
     }
 
     /**
-     * Updates all Schemes, including soft-deleted records, based on their IDs.
+     * Updates a Scheme option by ID, including soft-deleted.
      *
-     * @param schemeOptionDtos The list of updated Scheme options data.
-     * @return ResponseEntity containing a Map with the list of updated SchemeOptionDtos and ResponseMessageEntity
+     * @param schemeOptionDto - Updated Scheme option data
+     * @return Response with  - updated Scheme option data
      */
-    @Operation(summary = "Hard update all Schemes")
+    @Operation(summary = "Update a single Scheme option by ID, including soft-deleted")
+    @PutMapping("/update/hard/one")
+    public ResponseEntity<Object> hardUpdate(@Valid @RequestBody SchemeOptionDto schemeOptionDto) {
+        SchemeOptionModel schemeOptionModel = schemeOptionService.hardUpdate(convertToModel(schemeOptionDto));
+        SchemeOptionDto schemeOptionDto1 = convertToDto(schemeOptionModel);
+        return new ResponseEntity<>(schemeOptionDto1, HttpStatus.OK);
+    }
+
+    /**
+     * Updates all Scheme options, including soft-deleted.
+     * @param schemeOptionDtoList  - List of updated Scheme option data
+     * @return                     - Response with list of updated Scheme option data
+     */
+    @Operation(summary = "Update all Scheme options, including soft-deleted")
     @PutMapping("/update/hard/all")
-    public ResponseEntity<Map<String, Object>> hardUpdateAll(@Valid @RequestBody List<SchemeOptionDto> schemeOptionDtos){
+    public ResponseEntity<Object> hardUpdateAll(@Valid @RequestBody List<SchemeOptionDto> schemeOptionDtoList) {
         List<SchemeOptionModel> inputModels = new ArrayList<>();
-        for (SchemeOptionDto dto: schemeOptionDtos){
+        for (SchemeOptionDto dto : schemeOptionDtoList) {
             inputModels.add(convertToModel(dto));
         }
         List<SchemeOptionModel> updatedModels = schemeOptionService.hardUpdateAll(inputModels);
-        List<SchemeOptionDto> dtos = new ArrayList<>();
-        for (SchemeOptionModel schemeOptionModel: updatedModels){
-            dtos.add(convertToDto(schemeOptionModel));
+        List<SchemeOptionDto> dtoList = new ArrayList<>();
+        for (SchemeOptionModel model : updatedModels) {
+            dtoList.add(convertToDto(model));
         }
-        ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Schemes Hard updated successfully",
-                "OK",
-                200,
-                LocalDateTime.now()
-        );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Scheme Options", dtos);
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
-    }
-    /**
-     * Soft deletes a single Scheme by ID
-     * @param id ID of the Scheme to softly delete
-     * @return ResponseEntity containing a Map with the soft deleted SchemeOptionDto and ResponseMessageEntity
-     */
-    @Operation(summary = "Soft delete a single Scheme")
-    @PutMapping("/soft/delete/one/{id}")
-    public ResponseEntity<Map<String, Object>> softDeleteSchemeOption(@RequestParam Long id){
-        SchemeOptionModel deletedSchemeOptionModel = schemeOptionService.softDeleteSchemeOption(id);
-        SchemeOptionDto deletedSchemeOptionDto = convertToDto(deletedSchemeOptionModel);
-        ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Scheme Soft Deleted successfully",
-                "OK",
-                200,
-                LocalDateTime.now()
-        );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Scheme Option", deletedSchemeOptionDto);
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(dtoList, HttpStatus.OK);
     }
 
     /**
-     * Hard deletes a single Scheme by ID
-     * @param id ID of the Scheme option to hard delete
-     * @return ResponseEntity containing a Map with ResponseMessageEntity
+     * Soft deletes a Scheme option by ID.
+     * @return   - Response with success message
      */
-    @Operation(summary = "Hard delete a single Scheme Api endpoint")
+    @Operation(summary = "Soft delete a single Scheme option by ID")
+    @PutMapping("/soft/delete/one")
+    public ResponseEntity<Object> softDelete(@RequestParam String id){
+        SchemeOptionModel deleteSchemeOptionModel = schemeOptionService.softDelete(id);
+        ResponseMessageDto responseMessageDto = new ResponseMessageDto(
+                "Procurement type Soft Deleted successfully",
+                "OK",
+                LocalDateTime.now()
+        );
+        return new ResponseEntity<>(responseMessageDto, HttpStatus.OK);
+    }
+
+    /**
+     * Hard deletes a Scheme option by ID.
+     * @param id       - Scheme option ID
+     * @return         - Response with success message
+     */
+    @Operation(summary = "Hard delete a single Scheme option by ID")
     @GetMapping("/hard/delete/{id}")
-    public ResponseEntity<Map<String, Object>> hardDeleteSchemeOption(@RequestParam Long id){
-        schemeOptionService.hardDeleteSchemeOption(id);
+    public ResponseEntity<Object> hardDelete(@RequestParam String id) {
+        schemeOptionService.hardDelete(id);
         ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Scheme Hard Deleted Successfully",
-                "OK",
-                204,
+                "Scheme option hard deleted successfully",
+                HttpStatus.OK + "",
                 LocalDateTime.now()
         );
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(responseMessageDto, HttpStatus.OK);
     }
 
     /**
-     * Soft deletes multiple Scheme by IDs
-     * @param ids List of Scheme IDs to softly delete
-     * @return ResponseEntity containing a Map with the list of soft deleted SchemeOptionDto and ResponseMessageEntity
+     * Soft deletes multiple Scheme options by IDs.
+     * @param idList    - List of Scheme option IDs
+     * @return          - Response with list of soft-deleted Scheme option data
      */
-    @Operation(summary = "Soft delete multiple Scheme options")
+    @Operation(summary = "Soft delete multiple Scheme options by IDs")
     @PutMapping("/soft/delete/many")
-    public ResponseEntity<Map<String, Object>> softDeleteProcurementMethodOptions(@RequestBody List<Long> ids){
-        List<SchemeOptionModel> deletedSchemeOptionModels = schemeOptionService.softDeleteSchemeOptions(ids);
-        List<SchemeOptionDto> deletedSchemeOptionDtos = new ArrayList<>();
-        for (SchemeOptionModel model: deletedSchemeOptionModels){
-            deletedSchemeOptionDtos.add(convertToDto(model));
-        }
+    public ResponseEntity<Object> softDeleteMany(@Valid @RequestBody List<String> idList) {
+        List<SchemeOptionModel> deletedSchemeOptionModels = schemeOptionService.softDeleteMany(idList);
         ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Scheme Soft Deleted Successfully",
-                "OK",
-                200,
+                "Scheme options soft deleted successfully",
+                HttpStatus.OK + "",
                 LocalDateTime.now()
         );
+        return new ResponseEntity<>(responseMessageDto, HttpStatus.OK);
+    }
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("Scheme options", deletedSchemeOptionDtos);
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+    /**
+     * Hard deletes multiple Scheme options by IDs.
+     * @param idList   - List of Scheme option IDs
+     * @return         - Response with success message
+     */
+    @Operation(summary = "Hard delete multiple Scheme options by IDs")
+    @GetMapping("/hard/delete/many")
+    public ResponseEntity<Object> hardDeleteMany(@Valid @RequestBody List<String> idList) {
+        schemeOptionService.hardDeleteMany(idList);
+        ResponseMessageDto responseMessageDto = new ResponseMessageDto(
+                "All Scheme options hard deleted successfully",
+                HttpStatus.OK + "",
+                LocalDateTime.now()
+        );
+        return new ResponseEntity<>(responseMessageDto, HttpStatus.OK);
     }
     /**
-     * Hard deletes multiple Scheme by IDs
-     * @param ids List of Scheme options IDs to hard delete
-     * @return ResponseEntity containing a Map with ResponseMessageEntity
+     * Hard deletes all Scheme options, including soft-deleted.
+     * @return Response with success message
      */
-    @Operation(summary = "Hard delete multiple Schemes")
-    @GetMapping("/hard/delete/many")
-    public ResponseEntity<Map<String, Object>> hardDeleteSelectionMethodOptions(@RequestBody List<Long> ids){
-        schemeOptionService.hardDeleteSchemeOptions(ids);
+    @Operation(summary = "Hard delete all Scheme options")
+    @GetMapping("/hard/delete/all")
+    public ResponseEntity<Object> hardDeleteAll() {
+        schemeOptionService.hardDeleteAll();
         ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Schemes hard deleted successfully",
-                "OK",
-                204,
+                "All Scheme options hard deleted successfully",
+                HttpStatus.OK + "",
                 LocalDateTime.now()
         );
-        Map<String, Object> response = new HashMap<>();
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(responseMessageDto, HttpStatus.OK);
     }
 }

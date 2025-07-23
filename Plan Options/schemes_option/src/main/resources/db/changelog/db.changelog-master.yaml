@@ -1,16 +1,14 @@
 databaseChangeLog:
   - changeSet:
-      id: 20250718-8-create-scheme-option-table
+      id: 1
       author: evolve
       changes:
         - createTable:
-            tableName: scheme_option_model
-            schemaName: public
+            tableName: scheme_option
             columns:
               - column:
                   name: scheme_option_id
-                  type: bigint
-                  autoIncrement: true
+                  type: varchar(255)
                   constraints:
                     primaryKey: true
                     nullable: false
@@ -21,9 +19,7 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: description
-                  type: varchar(255)
-                  constraints:
-                    nullable: false
+                  type: text
               - column:
                   name: created_at
                   type: timestamp
@@ -33,9 +29,4 @@ databaseChangeLog:
                   name: updated_at
                   type: timestamp
                   constraints:
-                    nullable: true
-              - column:
-                  name: deleted_at
-                  type: timestamp
-                  constraints:
-                    nullable: true
+                    nullable: false

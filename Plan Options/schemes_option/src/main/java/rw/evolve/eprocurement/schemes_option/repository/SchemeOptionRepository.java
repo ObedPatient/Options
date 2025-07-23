@@ -10,7 +10,7 @@ import rw.evolve.eprocurement.schemes_option.model.SchemeOptionModel;
 import java.util.List;
 
 @Repository
-public interface SchemeOptionRepository extends JpaRepository<SchemeOptionModel, Long> {
+public interface SchemeOptionRepository extends JpaRepository<SchemeOptionModel, String> {
 
     /**
      * @param name of the SchemeOption to check if exists

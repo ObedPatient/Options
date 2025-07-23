@@ -1,5 +1,5 @@
 /**
- * Entity representing a Scheme option in the database.
+ * Entity representing a Scheme option in the 'plan' table 'scheme' field  in the database.
  */
 package rw.evolve.eprocurement.schemes_option.model;
 
@@ -9,23 +9,18 @@ import lombok.EqualsAndHashCode;
 import rw.evolve.eprocurement.schemes_option.model.base.GeneralTimestampBaseModel;
 
 @Data
-@Entity
-@Table(name = "scheme_option_model")
+@Entity(name = "scheme_option")
 @EqualsAndHashCode(callSuper =false, onlyExplicitlyIncluded = true)
 public class SchemeOptionModel extends GeneralTimestampBaseModel {
 
-    /** Unique identifier for the Scheme option. */
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "scheme_option_id")
-    @EqualsAndHashCode.Include
-    private Long id;
+    private String id;
 
-    /** name of the Scheme option */
+    @EqualsAndHashCode.Include
     @Column(name = "name", nullable = false)
     private String name;
 
-    /** Brief description of the Scheme option. */
-    @Column(name = "description", nullable = false)
+    @Column(name = "description")
     private String description;
 }
