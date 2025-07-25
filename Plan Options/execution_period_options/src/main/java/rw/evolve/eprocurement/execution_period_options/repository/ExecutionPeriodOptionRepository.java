@@ -11,7 +11,7 @@ import rw.evolve.eprocurement.execution_period_options.model.ExecutionPeriodOpti
 import java.util.List;
 
 @Repository
-public interface ExecutionPeriodOptionRepository extends JpaRepository<ExecutionPeriodOptionModel, Long> {
+public interface ExecutionPeriodOptionRepository extends JpaRepository<ExecutionPeriodOptionModel, String> {
 
 
     /**

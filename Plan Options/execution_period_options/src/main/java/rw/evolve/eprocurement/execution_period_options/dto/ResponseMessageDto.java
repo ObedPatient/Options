@@ -4,6 +4,7 @@
  */
 package rw.evolve.eprocurement.execution_period_options.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,20 +19,18 @@ public class ResponseMessageDto {
     /**
      * The message content of the response.
      */
-    private String response_message;
+    @JsonProperty("message")
+    private String message;
 
     /**
      * The response details, typically a JSON string of the response data.
      */
-    private String responseStatus;
-
-    /**
-     * HTTP status code of the response.
-     */
-    private int statuscode;
+    @JsonProperty("status")
+    private String status;
 
     /**
      * Timestamp of the response.
      */
+    @JsonProperty("timestamp")
     private LocalDateTime timestamp;
 }

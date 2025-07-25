@@ -10,23 +10,21 @@ import rw.evolve.eprocurement.execution_period_options.model.base.GeneralTimesta
 
 @Data
 @Entity
-@Table(name = "execution_period_option_model")
+@Table(name = "execution_period_option")
 @EqualsAndHashCode(callSuper =false, onlyExplicitlyIncluded = true)
 public class ExecutionPeriodOptionModel extends GeneralTimestampBaseModel {
 
-    /** Unique identifier for the ExecutionPeriod option. */
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "execution_period_option_id")
-    @EqualsAndHashCode.Include
-    private Long id;
 
-    /** name of the ExecutionPeriod option */
+    @Id
+    @Column(name = "id")
+    private String id;
+
+
     @Column(name = "name", nullable = false)
+    @EqualsAndHashCode.Include
     private String name;
 
-    /** Brief description of the ExecutionPeriod option. */
-    @Column(name = "description", nullable = false)
+    @Column(name = "description")
     private String description;
 
 

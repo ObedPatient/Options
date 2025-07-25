@@ -1,6 +1,6 @@
 /**
- * REST API controller for managing Execution Period options
- * Provides endpoints for creating, retrieving, deleting and updating Execution Period option data.
+ * REST API controller for managing Execution Period options.
+ * Handles CRUD operations for Execution Period option data with soft and hard delete capabilities.
  */
 package rw.evolve.eprocurement.execution_period_options.controller;
 
@@ -9,22 +9,22 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import rw.evolve.eprocurement.execution_period_options.dto.ExecutionPeriodOptionDto;
 import rw.evolve.eprocurement.execution_period_options.dto.ResponseMessageDto;
 import rw.evolve.eprocurement.execution_period_options.model.ExecutionPeriodOptionModel;
 import rw.evolve.eprocurement.execution_period_options.service.ExecutionPeriodOptionService;
+import rw.evolve.eprocurement.execution_period_options.utils.ExecutionPeriodOptionIdGenerator;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("api/execution_period_option")
-@Tag(name = "Execution Period Option Api")
+@Tag(name = "Execution Period Option API")
 public class ExecutionPeriodOptionController {
 
     @Autowired
@@ -33,367 +33,275 @@ public class ExecutionPeriodOptionController {
     private final ModelMapper modelMapper = new ModelMapper();
 
     /**
-     * Converts an ExecutionPeriodOptionModel to ExecutionPeriodOptionDto.
-     * @param model The ExecutionPeriodOptionModel to convert.
-     * @return The converted ExecutionPeriodOptionDto.
+     * Converts ExecutionPeriodOptionModel to ExecutionPeriodOptionDto.
+     * @param model - ExecutionPeriodOptionModel to convert
+     * @return      - Converted ExecutionPeriodOptionDto
      */
-    private ExecutionPeriodOptionDto convertToDto(ExecutionPeriodOptionModel model){
+    private ExecutionPeriodOptionDto convertToDto(ExecutionPeriodOptionModel model) {
         return modelMapper.map(model, ExecutionPeriodOptionDto.class);
     }
 
     /**
-     * Converts an ExecutionPeriodOptionDto to ExecutionPeriodOptionModel.
-     * @param dto The ExecutionPeriodOptionDto to convert.
-     * @return The converted ExecutionPeriodOptionModel.
+     * Converts ExecutionPeriodOptionDto to ExecutionPeriodOptionModel.
+     * @param executionPeriodOptionDto - ExecutionPeriodOptionDto to convert
+     * @return                         - Converted ExecutionPeriodOptionModel
      */
-    private ExecutionPeriodOptionModel convertToModel(ExecutionPeriodOptionDto dto){
-        return modelMapper.map(dto, ExecutionPeriodOptionModel.class);
+    private ExecutionPeriodOptionModel convertToModel(ExecutionPeriodOptionDto executionPeriodOptionDto) {
+        return modelMapper.map(executionPeriodOptionDto, ExecutionPeriodOptionModel.class);
     }
 
     /**
-     * Creates a single Execution Period Option
-     * @param executionPeriodOptionDto DTO containing Execution Period Option data
-     * @return ResponseEntity containing a Map with the created ExecutionPeriodOptionDto and a ResponseMessageDto
+     * Creates a single Execution Period Option.
+     * @param executionPeriodOptionDto - Execution Period Option data
+     * @return                         - Response with success message
      */
-    @Operation(summary = "Create one Execution Period Option Api endpoint")
+    @Operation(summary = "Create a single Execution period option")
     @PostMapping("/create/one")
-    public ResponseEntity<Map<String, Object>> createExecutionPeriodOption(@Valid @RequestBody ExecutionPeriodOptionDto executionPeriodOptionDto){
+    public ResponseEntity<Object> save(@Valid @RequestBody ExecutionPeriodOptionDto executionPeriodOptionDto) {
         ExecutionPeriodOptionModel executionPeriodOptionModel = convertToModel(executionPeriodOptionDto);
-        ExecutionPeriodOptionModel createdExecutionPeriodOptionModel = executionPeriodOptionService.createExecutionPeriodOption(executionPeriodOptionModel);
-        ExecutionPeriodOptionDto createdExecutionPeriodOptionDto = convertToDto(createdExecutionPeriodOptionModel);
+        executionPeriodOptionModel.setId(ExecutionPeriodOptionIdGenerator.generateId());
+        executionPeriodOptionService.save(executionPeriodOptionModel);
         ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Execution Period Option created successfully",
-                "OK",
-                201,
+                "Execution period option created successfully",
+                HttpStatus.OK + "",
                 LocalDateTime.now()
         );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Execution Period Option", createdExecutionPeriodOptionDto);
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(responseMessageDto, HttpStatus.OK);
     }
 
     /**
-     * Creates multiple Execution Period Options
-     * @param executionPeriodOptionDtos List of Execution Period Option DTOs
-     * @return ResponseEntity containing a Map with the created list of ExecutionPeriodOptionDto and a ResponseMessageDto
+     * Creates multiple Execution Period Options.
+     * @param executionPeriodOptionDtoList - List of Execution Period Option data
+     * @return                             - Response with success message
      */
-    @Operation(summary = "Create Many Execution Period Option Api endpoint")
+    @Operation(summary = "Create multiple execution period options")
     @PostMapping("/create/many")
-    public ResponseEntity<Map<String, Object>> createExecutionPeriodOptions(@Valid @RequestBody List<ExecutionPeriodOptionDto> executionPeriodOptionDtos){
-        List<ExecutionPeriodOptionModel> executionPeriodOptionModels = new ArrayList<>();
-        for (ExecutionPeriodOptionDto dto: executionPeriodOptionDtos){
-            executionPeriodOptionModels.add(convertToModel(dto));
+    public ResponseEntity<Object> saveMany(@Valid @RequestBody List<ExecutionPeriodOptionDto> executionPeriodOptionDtoList) {
+        List<ExecutionPeriodOptionModel> executionPeriodOptionModelList = new ArrayList<>();
+        for (ExecutionPeriodOptionDto executionPeriodOptionDto : executionPeriodOptionDtoList) {
+            ExecutionPeriodOptionModel model = convertToModel(executionPeriodOptionDto);
+            model.setId(ExecutionPeriodOptionIdGenerator.generateId());
+            executionPeriodOptionModelList.add(model);
         }
-        List<ExecutionPeriodOptionModel> createdModels = executionPeriodOptionService.createExecutionPeriodOptions(executionPeriodOptionModels);
-        List<ExecutionPeriodOptionDto> createdExecutionPeriodDtos = new ArrayList<>();
-        for (ExecutionPeriodOptionModel model: createdModels){
-            createdExecutionPeriodDtos.add(convertToDto(model));
-        }
-        ResponseMessageDto responseMessage = new ResponseMessageDto(
-                "Execution Period Options Created Successfully",
-                "OK",
-                201,
+        executionPeriodOptionService.saveMany(executionPeriodOptionModelList);
+        ResponseMessageDto responseMessageDto = new ResponseMessageDto(
+                "Execution period options created successfully",
+                HttpStatus.OK + "",
                 LocalDateTime.now()
         );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Execution Period Options", createdExecutionPeriodDtos);
-        response.put("responseMessage", responseMessage);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(responseMessageDto, HttpStatus.OK);
     }
 
     /**
-     * Retrieves an Execution Period Option by its ID, excluding soft-deleted options.
-     * @param id The ID of the Execution Period Option to retrieve, provided as a request parameter.
-     * @return ResponseEntity containing a Map with the ExecutionPeriodOptionDto and a ResponseMessageDto
+     * Retrieves an Execution Period Option by ID (excludes soft-deleted).
+     * @param id - Execution Period Option ID
+     * @return   - Response with Execution Period Option data
      */
-    @Operation(summary = "Get One Execution Period Option API")
-    @GetMapping("/read/one/{id}")
-    public ResponseEntity<Map<String, Object>> readOne(@RequestParam("ExecutionPeriodOptionId") Long id){
+    @Operation(summary = "Get a single Execution Period Option by ID")
+    @GetMapping("/read/one")
+    public ResponseEntity<Object> readOne(@RequestParam("id") String id) {
         ExecutionPeriodOptionModel model = executionPeriodOptionService.readOne(id);
-        ExecutionPeriodOptionDto dto = convertToDto(model);
-        ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Execution Period Option Retrieved Successfully",
-                "OK",
-                200,
-                LocalDateTime.now()
-        );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Execution Period Option", dto);
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+        ExecutionPeriodOptionDto executionPeriodOptionDto = convertToDto(model);
+        return new ResponseEntity<>(executionPeriodOptionDto, HttpStatus.OK);
     }
 
     /**
      * Retrieves all non-deleted Execution Period Options.
-     * @return ResponseEntity containing a Map with a list of ExecutionPeriodOptionDto and a ResponseMessageDto
+     * @return - Response with list of Execution Period Option data
      */
-    @Operation(summary = "Read all Execution Period Option Api endpoint")
+    @Operation(summary = "Get all available Execution Period Options")
     @GetMapping("/read/all")
-    public ResponseEntity<Map<String, Object>> readAll(){
-        List<ExecutionPeriodOptionModel> executionPeriodOptionModels = executionPeriodOptionService.readAll();
-        List<ExecutionPeriodOptionDto> executionPeriodOptionDtos = new ArrayList<>();
-        for (ExecutionPeriodOptionModel executionPeriodOptionModel: executionPeriodOptionModels){
-            executionPeriodOptionDtos.add(convertToDto(executionPeriodOptionModel));
+    public ResponseEntity<Object> readAll() {
+        List<ExecutionPeriodOptionModel> executionPeriodOptionModelList = executionPeriodOptionService.readAll();
+        List<ExecutionPeriodOptionDto> executionPeriodOptionDtoList = new ArrayList<>();
+        for (ExecutionPeriodOptionModel executionPeriodOptionModel : executionPeriodOptionModelList) {
+            executionPeriodOptionDtoList.add(convertToDto(executionPeriodOptionModel));
         }
-        ResponseMessageDto responseMessage = new ResponseMessageDto(
-                "Execution Period Options Retrieved Successfully",
-                "OK",
-                200,
-                LocalDateTime.now()
-        );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Execution Period Options", executionPeriodOptionDtos);
-        response.put("responseMessage", responseMessage);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(executionPeriodOptionDtoList, HttpStatus.OK);
     }
 
     /**
-     * Retrieves all Execution Period Options, including soft-deleted ones.
-     * @return ResponseEntity containing a Map with a list of ExecutionPeriodOptionDto and a ResponseMessageDto
+     * Retrieves all Execution Period Options, including soft-deleted.
+     * @return - Response with list of all Execution Period Option data
      */
-    @Operation(summary = "Hard read all Execution Period Option Api endpoint")
+    @Operation(summary = "Get all Execution Period Options, including soft-deleted")
     @GetMapping("/read/hard/all")
-    public ResponseEntity<Map<String, Object>> hardReadAll(){
-        List<ExecutionPeriodOptionModel> models = executionPeriodOptionService.hardReadAll();
-        List<ExecutionPeriodOptionDto> dtos = new ArrayList<>();
-        for (ExecutionPeriodOptionModel model: models){
-            dtos.add(convertToDto(model));
+    public ResponseEntity<Object> hardReadAll() {
+        List<ExecutionPeriodOptionModel> modelList = executionPeriodOptionService.hardReadAll();
+        List<ExecutionPeriodOptionDto> executionPeriodOptionDtoList = new ArrayList<>();
+        for (ExecutionPeriodOptionModel model : modelList) {
+            executionPeriodOptionDtoList.add(convertToDto(model));
         }
-        ResponseMessageDto responseMessage = new ResponseMessageDto(
-                "All Execution Period Options Retrieved Successfully",
-                "OK",
-                200,
-                LocalDateTime.now()
-        );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Execution Period Options", dtos);
-        response.put("responseMessage", responseMessage);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(executionPeriodOptionDtoList, HttpStatus.OK);
     }
 
     /**
-     * Retrieves multiple Execution Period Options by their IDs, excluding soft-deleted records.
-     * @param ids List of Execution Period Option IDs
-     * @return ResponseEntity containing a Map with a list of ExecutionPeriodOptionDto and a ResponseMessageDto
+     * Retrieves multiple Execution Period Options by ID (excludes soft-deleted).
+     * @param idList - List of Execution Period Option IDs
+     * @return       - Response with list of Execution Period Option data
      */
-    @Operation(summary = "Retrieve multiple Execution Period Options with their Ids Api")
-    @PostMapping("read/many")
-    public ResponseEntity<Map<String, Object>> readMany(@Valid @RequestBody List<Long> ids){
-        List<ExecutionPeriodOptionModel> executionPeriodOptionModels = executionPeriodOptionService.readMany(ids);
-        List<ExecutionPeriodOptionDto> executionPeriodOptionDtos = new ArrayList<>();
-        for (ExecutionPeriodOptionModel model: executionPeriodOptionModels){
-            executionPeriodOptionDtos.add(convertToDto(model));
+    @Operation(summary = "Get multiple Execution Period Options by ID")
+    @PostMapping("/read/many")
+    public ResponseEntity<Object> readMany(@Valid @RequestParam("id_list") List<String> idList) {
+        List<ExecutionPeriodOptionModel> executionPeriodOptionModelList = executionPeriodOptionService.readMany(idList);
+        List<ExecutionPeriodOptionDto> executionPeriodOptionDtoList = new ArrayList<>();
+        for (ExecutionPeriodOptionModel model : executionPeriodOptionModelList) {
+            executionPeriodOptionDtoList.add(convertToDto(model));
         }
-        ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Execution Period Options Retrieved Successfully",
-                "OK",
-                200,
-                LocalDateTime.now()
-        );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Execution Period Options", executionPeriodOptionDtos);
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(executionPeriodOptionDtoList, HttpStatus.OK);
     }
 
     /**
-     * Updates an Execution Period Option by its ID, excluding soft-deleted records.
-     * @param id The ID of the Execution Period Option to update
-     * @param executionPeriodOptionDto The updated Execution Period Option data
-     * @return ResponseEntity containing a Map with the updated ExecutionPeriodOptionDto and a ResponseMessageDto
+     * Updates an Execution Period Option by ID (excludes soft-deleted).
+     * @param executionPeriodOptionDto - Updated Execution Period Option data
+     * @return                         - Response with updated Execution Period Option data
      */
-    @Operation(summary = "Update One Execution Period Option Api")
-    @PutMapping("/update/one/{id}")
-    public ResponseEntity<Map<String, Object>> updateOne(@Valid @RequestParam Long id,
-                                                         @Valid @RequestBody ExecutionPeriodOptionDto executionPeriodOptionDto){
-        ExecutionPeriodOptionModel executionPeriodOptionModel = executionPeriodOptionService.updateOne(id, convertToModel(executionPeriodOptionDto));
-        ExecutionPeriodOptionDto dto = convertToDto(executionPeriodOptionModel);
-        ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Execution Period Option Updated Successfully",
-                "OK",
-                200,
-                LocalDateTime.now()
-        );
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("Execution Period Option", dto);
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+    @Operation(summary = "Update a single Execution Period Option by ID")
+    @PutMapping("/update/one")
+    public ResponseEntity<Object> updateOne(@Valid @RequestBody ExecutionPeriodOptionDto executionPeriodOptionDto) {
+        String modelId = executionPeriodOptionDto.getId();
+        ExecutionPeriodOptionModel savedModel = executionPeriodOptionService.readOne(modelId);
+        savedModel.setName(executionPeriodOptionDto.getName());
+        savedModel.setDescription(executionPeriodOptionDto.getDescription());
+        executionPeriodOptionService.updateOne(savedModel);
+        ExecutionPeriodOptionDto updatedDto = convertToDto(savedModel);
+        return new ResponseEntity<>(updatedDto, HttpStatus.OK);
     }
 
     /**
-     * Updates multiple Execution Period Options based on the provided list of Execution Period Option DTOs.
-     * Excludes soft-deleted records from updates.
-     *
-     * @param executionPeriodOptionDtos List of ExecutionPeriodOptionDto objects containing updated data
-     * @return ResponseEntity containing a Map with the list of updated ExecutionPeriodOptionDtos and ResponseMessageDto
+     * Updates multiple Execution Period Options (excludes soft-deleted).
+     * @param executionPeriodOptionDtoList - List of updated Execution Period Option data
+     * @return                             - Response with list of updated Execution Period Option data
      */
-    @Operation(summary = "Update multiple Execution Period Options Api endpoint")
+    @Operation(summary = "Update multiple Execution Period Options")
     @PutMapping("/update/many")
-    public ResponseEntity<Map<String, Object>> updateMany(@Valid @RequestBody List<ExecutionPeriodOptionDto> executionPeriodOptionDtos){
-        List<ExecutionPeriodOptionModel> inputModels = new ArrayList<>();
-        for (ExecutionPeriodOptionDto dto: executionPeriodOptionDtos){
-            inputModels.add(convertToModel(dto));
+    public ResponseEntity<Object> updateMany(@Valid @RequestBody List<ExecutionPeriodOptionDto> executionPeriodOptionDtoList) {
+        List<ExecutionPeriodOptionModel> inputModelList = new ArrayList<>();
+        for (ExecutionPeriodOptionDto executionPeriodOptionDto : executionPeriodOptionDtoList) {
+            inputModelList.add(convertToModel(executionPeriodOptionDto));
         }
-        List<ExecutionPeriodOptionModel> updatedModels = executionPeriodOptionService.updateMany(inputModels);
-        List<ExecutionPeriodOptionDto> dtos = new ArrayList<>();
-        for (ExecutionPeriodOptionModel model: updatedModels){
-            dtos.add(convertToDto(model));
+        List<ExecutionPeriodOptionModel> updatedModelList = executionPeriodOptionService.updateMany(inputModelList);
+        List<ExecutionPeriodOptionDto> updatedDtoList = new ArrayList<>();
+        for (ExecutionPeriodOptionModel model : updatedModelList) {
+            updatedDtoList.add(convertToDto(model));
         }
-        ResponseMessageDto responseMessage = new ResponseMessageDto(
-                "Execution Period Options Updated Successfully",
-                "OK",
-                200,
-                LocalDateTime.now()
-        );
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("Execution Period Options", dtos);
-        response.put("responseMessage", responseMessage);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(updatedDtoList, HttpStatus.OK);
     }
 
     /**
-     * Updates an Execution Period Option by its ID, including soft-deleted records.
-     *
-     * @param id The ID of the Execution Period Option to update.
-     * @param executionPeriodOptionDto The updated Execution Period Option data.
-     * @return ResponseEntity containing a Map with the updated ExecutionPeriodOptionDto and ResponseMessageDto
+     * Updates an Execution Period Option by ID, including soft-deleted.
+     * @param executionPeriodOptionDto - Updated Execution Period Option data
+     * @return                         - Response with updated Execution Period Option data
      */
-    @Operation(summary = "Hard update Execution Period Option by Id Api endpoint")
-    @PutMapping("/update/hard/one/{id}")
-    public ResponseEntity<Map<String, Object>> hardUpdate(@RequestParam Long id, @Valid @RequestBody ExecutionPeriodOptionDto executionPeriodOptionDto){
-        ExecutionPeriodOptionModel executionPeriodOptionModel = executionPeriodOptionService.hardUpdateOne(id, convertToModel(executionPeriodOptionDto));
-        ExecutionPeriodOptionDto dto = convertToDto(executionPeriodOptionModel);
-        ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Execution Period Option Updated Successfully",
-                "OK",
-                200,
-                LocalDateTime.now()
-        );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Execution Period Option", dto);
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+    @Operation(summary = "Update a single Execution Period Option by ID, including soft-deleted")
+    @PutMapping("/update/hard/one")
+    public ResponseEntity<Object> hardUpdate(@Valid @RequestBody ExecutionPeriodOptionDto executionPeriodOptionDto) {
+        ExecutionPeriodOptionModel executionPeriodOptionModel = executionPeriodOptionService.hardUpdate(convertToModel(executionPeriodOptionDto));
+        ExecutionPeriodOptionDto updatedDto = convertToDto(executionPeriodOptionModel);
+        return new ResponseEntity<>(updatedDto, HttpStatus.OK);
     }
 
     /**
-     * Updates all Execution Period Options, including soft-deleted records, based on their IDs.
-     *
-     * @param executionPeriodOptionDtos The list of updated Execution Period Option data.
-     * @return ResponseEntity containing a Map with the list of updated ExecutionPeriodOptionDtos and ResponseMessageDto
+     * Updates all Execution Period Options, including soft-deleted.
+     * @param executionPeriodOptionDtoList - List of updated Execution Period Option data
+     * @return                             - Response with list of updated Execution Period Option data
      */
-    @Operation(summary = "Hard update all Execution Period Options")
+    @Operation(summary = "Update all Execution Period Options, including soft-deleted")
     @PutMapping("/update/hard/all")
-    public ResponseEntity<Map<String, Object>> hardUpdateAll(@Valid @RequestBody List<ExecutionPeriodOptionDto> executionPeriodOptionDtos){
-        List<ExecutionPeriodOptionModel> inputModels = new ArrayList<>();
-        for (ExecutionPeriodOptionDto dto: executionPeriodOptionDtos){
-            inputModels.add(convertToModel(dto));
+    public ResponseEntity<Object> hardUpdateAll(@Valid @RequestBody List<ExecutionPeriodOptionDto> executionPeriodOptionDtoList) {
+        List<ExecutionPeriodOptionModel> inputModelList = new ArrayList<>();
+        for (ExecutionPeriodOptionDto executionPeriodOptionDto : executionPeriodOptionDtoList) {
+            inputModelList.add(convertToModel(executionPeriodOptionDto));
         }
-        List<ExecutionPeriodOptionModel> updatedModels = executionPeriodOptionService.hardUpdateAll(inputModels);
-        List<ExecutionPeriodOptionDto> dtos = new ArrayList<>();
-        for (ExecutionPeriodOptionModel executionPeriodOptionModel: updatedModels){
-            dtos.add(convertToDto(executionPeriodOptionModel));
+        List<ExecutionPeriodOptionModel> updatedModelList = executionPeriodOptionService.hardUpdateAll(inputModelList);
+        List<ExecutionPeriodOptionDto> updatedDtoList = new ArrayList<>();
+        for (ExecutionPeriodOptionModel model : updatedModelList) {
+            updatedDtoList.add(convertToDto(model));
         }
-        ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Execution Period Options Hard updated successfully",
-                "OK",
-                200,
-                LocalDateTime.now()
-        );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Execution Period Options", dtos);
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(updatedDtoList, HttpStatus.OK);
     }
 
     /**
-     * Soft deletes a single Execution Period Option by ID
-     * @param id ID of the Execution Period Option to softly delete
-     * @return ResponseEntity containing a Map with the soft deleted ExecutionPeriodOptionDto and ResponseMessageDto
+     * Soft deletes an Execution Period Option by ID.
+     * @param id - Execution Period Option ID
+     * @return   - Response with success message
      */
-    @Operation(summary = "Soft delete a single Execution Period Option")
-    @PutMapping("/soft/delete/one/{id}")
-    public ResponseEntity<Map<String, Object>> softDeleteExecutionPeriodOption(@RequestParam Long id){
-        ExecutionPeriodOptionModel deletedExecutionPeriodOptionModel = executionPeriodOptionService.softDeleteExecutionPeriodOption(id);
-        ExecutionPeriodOptionDto deletedExecutionPeriodOptionDto = convertToDto(deletedExecutionPeriodOptionModel);
+    @Operation(summary = "Soft delete a single Execution Period Option by ID")
+    @PutMapping("/soft/delete/one")
+    public ResponseEntity<Object> softDelete(@RequestParam String id) {
+        ExecutionPeriodOptionModel deletedModel = executionPeriodOptionService.softDelete(id);
         ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Execution Period Option Soft Deleted successfully",
-                "OK",
-                200,
+                "Execution period option soft deleted successfully",
+                HttpStatus.OK + "",
                 LocalDateTime.now()
         );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Execution Period Option", deletedExecutionPeriodOptionDto);
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(responseMessageDto, HttpStatus.OK);
     }
 
     /**
-     * Hard deletes a single Execution Period Option by ID
-     * @param id ID of the Execution Period Option to hard delete
-     * @return ResponseEntity containing a Map with ResponseMessageDto
+     * Hard deletes an Execution Period Option by ID.
+     * @param id - Execution Period Option ID
+     * @return   - Response with success message
      */
-    @Operation(summary = "Hard delete a single Execution Period Option Api endpoint")
+    @Operation(summary = "Hard delete a single Execution Period Option by ID")
     @GetMapping("/hard/delete/{id}")
-    public ResponseEntity<Map<String, Object>> hardDeleteExecutionPeriodOption(@RequestParam Long id){
-        executionPeriodOptionService.hardDeleteExecutionPeriodOption(id);
+    public ResponseEntity<Object> hardDelete(@RequestParam String id) {
+        executionPeriodOptionService.hardDelete(id);
         ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Execution Period Option Hard Deleted Successfully",
-                "OK",
-                204,
+                "Execution Period Option hard deleted successfully",
+                HttpStatus.OK + "",
                 LocalDateTime.now()
         );
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(responseMessageDto, HttpStatus.OK);
     }
 
     /**
-     * Soft deletes multiple Execution Period Options by IDs
-     * @param ids List of Execution Period Option IDs to softly delete
-     * @return ResponseEntity containing a Map with the list of soft deleted ExecutionPeriodOptionDto and ResponseMessageDto
+     * Soft deletes multiple Execution Period Options by ID.
+     * @param idList - List of Execution Period Option IDs
+     * @return       - Response with success message
      */
-    @Operation(summary = "Soft delete multiple Execution Period Options")
+    @Operation(summary = "Soft delete multiple Execution Period Options by ID")
     @PutMapping("/soft/delete/many")
-    public ResponseEntity<Map<String, Object>> softDeleteExecutionPeriodOptions(@RequestBody List<Long> ids){
-        List<ExecutionPeriodOptionModel> deletedExecutionPeriodOptionModels = executionPeriodOptionService.softDeleteExecutionPeriodOptions(ids);
-        List<ExecutionPeriodOptionDto> deletedExecutionPeriodOptionDtos = new ArrayList<>();
-        for (ExecutionPeriodOptionModel model: deletedExecutionPeriodOptionModels){
-            deletedExecutionPeriodOptionDtos.add(convertToDto(model));
-        }
+    public ResponseEntity<Object> softDeleteMany(@Valid @RequestParam("idList") List<String> idList) {
+        List<ExecutionPeriodOptionModel> deletedModelList = executionPeriodOptionService.softDeleteMany(idList);
         ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Execution Period Options Soft Deleted Successfully",
-                "OK",
-                200,
+                "Execution period options soft deleted successfully",
+                HttpStatus.OK + "",
                 LocalDateTime.now()
         );
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("Execution Period Options", deletedExecutionPeriodOptionDtos);
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(responseMessageDto, HttpStatus.OK);
     }
 
     /**
-     * Hard deletes multiple Execution Period Options by IDs
-     * @param ids List of Execution Period Option IDs to hard delete
-     * @return ResponseEntity containing a Map with ResponseMessageDto
+     * Hard deletes multiple Execution Period Options by ID.
+     * @param idList - List of Execution Period Option IDs
+     * @return       - Response with success message
      */
-    @Operation(summary = "Hard delete multiple Execution Period Options")
+    @Operation(summary = "Hard delete multiple Execution Period Options by ID")
     @GetMapping("/hard/delete/many")
-    public ResponseEntity<Map<String, Object>> hardDeleteExecutionPeriodOptions(@RequestBody List<Long> ids){
-        executionPeriodOptionService.hardDeleteExecutionPeriodOptions(ids);
+    public ResponseEntity<Object> hardDeleteMany(@Valid @RequestParam("idList") List<String> idList) {
+        executionPeriodOptionService.hardDeleteMany(idList);
         ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Execution Period Options Hard Deleted Successfully",
-                "OK",
-                204,
+                "Execution period options hard deleted successfully",
+                HttpStatus.OK + "",
                 LocalDateTime.now()
         );
-        Map<String, Object> response = new HashMap<>();
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(responseMessageDto, HttpStatus.OK);
+    }
+
+    /**
+     * Hard deletes all Execution Period Options, including soft-deleted.
+     * @return - Response with success message
+     */
+    @Operation(summary = "Hard delete all Execution Period Options")
+    @GetMapping("/hard/delete/all")
+    public ResponseEntity<Object> hardDeleteAll() {
+        executionPeriodOptionService.hardDeleteAll();
+        ResponseMessageDto responseMessageDto = new ResponseMessageDto(
+                "All Execution period options hard deleted successfully",
+                HttpStatus.OK + "",
+                LocalDateTime.now()
+        );
+        return new ResponseEntity<>(responseMessageDto, HttpStatus.OK);
     }
 }
