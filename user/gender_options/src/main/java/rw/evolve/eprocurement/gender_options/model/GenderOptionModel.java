@@ -1,5 +1,5 @@
 /**
- * Entity representing a Gender option in the database.
+ * Entity representing a Gender option in the "user" table "gender" field in the database.
  */
 package rw.evolve.eprocurement.gender_options.model;
 
@@ -10,23 +10,19 @@ import rw.evolve.eprocurement.gender_options.model.base.GeneralTimestampBaseMode
 
 @Data
 @Entity
-@Table(name = "gender_option_model")
+@Table(name = "gender_option")
 @EqualsAndHashCode(callSuper =false, onlyExplicitlyIncluded = true)
 public class GenderOptionModel extends GeneralTimestampBaseModel {
 
 
-    /** Unique identifier for the Gender option. */
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "gender_option_id")
-    @EqualsAndHashCode.Include
-    private Long id;
+    @Column(name = "id")
+    private String id;
 
-    /** name of the Gender option */
     @Column(name = "name", nullable = false)
+    @EqualsAndHashCode.Include
     private String name;
 
-    /** Brief description of the Gender option. */
-    @Column(name = "description", nullable = false)
+    @Column(name = "description")
     private String description;
 }

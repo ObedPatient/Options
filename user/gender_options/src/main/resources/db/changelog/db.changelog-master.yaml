@@ -4,13 +4,12 @@ databaseChangeLog:
         author: evolve
         changes:
           - createTable:
-              tableName: gender_option_model
+              tableName: gender_option
               schemaName: public
               columns:
                 - column:
-                    name: gender_option_id
-                    type: bigint
-                    autoIncrement: true
+                    name: id
+                    type: varchar(255)
                     constraints:
                       primaryKey: true
                       nullable: false
