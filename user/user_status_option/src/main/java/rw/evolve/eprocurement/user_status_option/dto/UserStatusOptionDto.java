@@ -12,7 +12,7 @@ import lombok.Data;
 public class UserStatusOptionDto {
 
     /** Unique identifier for the User status option */
-    @JsonProperty("user_status_option_id")
+    @JsonProperty("id")
     private String id;
 
     /** name of User status option*/
