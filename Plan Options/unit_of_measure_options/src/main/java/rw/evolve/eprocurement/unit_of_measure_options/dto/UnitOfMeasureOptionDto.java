@@ -11,17 +11,14 @@ import lombok.Data;
 @Data
 public class UnitOfMeasureOptionDto {
 
-    /** Unique identifier for the UnitOfMeasure option */
-    @JsonProperty("unit_of_measure_option_id")
-    private Long id;
+    @JsonProperty("id")
+    private String id;
 
-    /** name of UnitOfMeasure option*/
     @JsonProperty("name")
     @NotNull(message = "name is mandatory")
     @Size(max = 255, message = "Name cannot exceed 150 characters")
     private String name;
 
-    /** description of the UnitOfMeasure option*/
     @JsonProperty("description")
     @NotNull(message = "description is mandatory")
     @Size(max = 255, message = "Description cannot exceed 255 characters")

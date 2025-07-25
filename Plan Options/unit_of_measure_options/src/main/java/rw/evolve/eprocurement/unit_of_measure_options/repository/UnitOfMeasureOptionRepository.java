@@ -5,7 +5,7 @@ import rw.evolve.eprocurement.unit_of_measure_options.model.UnitOfMeasureOptionM
 
 import java.util.List;
 
-public interface UnitOfMeasureOptionRepository extends JpaRepository<UnitOfMeasureOptionModel, Long> {
+public interface UnitOfMeasureOptionRepository extends JpaRepository<UnitOfMeasureOptionModel, String> {
 
     /**
      * @param name of the UnitOfMeasure to check if exists

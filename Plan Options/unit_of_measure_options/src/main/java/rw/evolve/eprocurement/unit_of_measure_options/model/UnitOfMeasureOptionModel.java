@@ -1,5 +1,5 @@
 /**
- * Entity representing a UnitOfMeasure option in the database.
+ * Entity representing a UnitOfMeasure option in "item" table "unit of measure" field in the database.
  */
 package rw.evolve.eprocurement.unit_of_measure_options.model;
 
@@ -10,22 +10,18 @@ import rw.evolve.eprocurement.unit_of_measure_options.model.base.GeneralTimestam
 
 @Data
 @Entity
-@Table(name = "unit_of_measure_option_model")
+@Table(name = "unit_of_measure_option")
 @EqualsAndHashCode(callSuper =false, onlyExplicitlyIncluded = true)
 public class UnitOfMeasureOptionModel extends GeneralTimestampBaseModel {
 
-    /** Unique identifier for the UnitOfMeasure option. */
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "unit_of_measure_option_id")
-    @EqualsAndHashCode.Include
-    private Long id;
+    @Column(name = "id")
+    private String id;
 
-    /** name of the UnitOfMeasure option */
     @Column(name = "name", nullable = false)
+    @EqualsAndHashCode.Include
     private String name;
 
-    /** Brief description of the UnitOfMeasure option. */
-    @Column(name = "description", nullable = false)
+    @Column(name = "description")
     private String description;
 }

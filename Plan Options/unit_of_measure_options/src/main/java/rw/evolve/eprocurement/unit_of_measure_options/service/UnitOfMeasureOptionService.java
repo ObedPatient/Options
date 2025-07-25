@@ -1,7 +1,11 @@
+/**
+ * Service for managing UnitOfMeasureOption model.
+ * Provides functionality to create, read, update, and delete UnitOfMeasureOption data, supporting both
+ * soft and hard deletion operations through the corresponding repository.
+ */
 package rw.evolve.eprocurement.unit_of_measure_options.service;
 
 import jakarta.transaction.Transactional;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import rw.evolve.eprocurement.unit_of_measure_options.exception.UnitOfMeasureAlreadyExistException;
@@ -19,315 +23,245 @@ public class UnitOfMeasureOptionService {
     @Autowired
     private UnitOfMeasureOptionRepository unitOfMeasureOptionRepository;
 
-    private final ModelMapper modelMapper = new ModelMapper();
-
     /**
-     * Creates a single Unit of Measure Option entity.
+     * Creates a single Unit of Measure option model.
      *
-     * @param unitOfMeasureOptionModel the UnitOfMeasureOptionModel to be created
-     * @return the saved UnitOfMeasureOption model
+     * @param unitOfMeasureOptionModel            - the UnitOfMeasureOptionModel to be created
+     * @return                                    - the saved UnitOfMeasureOption model
+     * @throws UnitOfMeasureAlreadyExistException - if a UnitOfMeasureOption with the same name exists
+     * @throws NullPointerException               - if the input model is null
      */
     @Transactional
-    public UnitOfMeasureOptionModel createUnitOfMeasureOption(UnitOfMeasureOptionModel unitOfMeasureOptionModel){
-        if (unitOfMeasureOptionRepository.existsByName(unitOfMeasureOptionModel.getName())){
-            throw new UnitOfMeasureAlreadyExistException("Unit of Measure Option Already exists: " + unitOfMeasureOptionModel.getName());
+    public UnitOfMeasureOptionModel save(UnitOfMeasureOptionModel unitOfMeasureOptionModel) {
+        if (unitOfMeasureOptionModel == null) {
+            throw new NullPointerException("Unit of measure option cannot be null");
+        }
+        if (unitOfMeasureOptionRepository.existsByName(unitOfMeasureOptionModel.getName())) {
+            throw new UnitOfMeasureAlreadyExistException("Unit of measure option already exists: " + unitOfMeasureOptionModel.getName());
         }
         return unitOfMeasureOptionRepository.save(unitOfMeasureOptionModel);
     }
 
     /**
-     * Creates multiple Unit of Measure Option entities, each with a unique ID.
-     * Iterates through the provided list of Unit of Measure Option models
+     * Creates multiple Unit of Measure option model.
      *
-     * @param unitOfMeasureOptionModels the list of Unit of Measure Option models to be created
-     * @return a list of saved Unit of Measure Option models.
+     * @param unitOfMeasureOptionModelList        - the list of UnitOfMeasureOption models to be created
+     * @return                                    - a list of saved UnitOfMeasureOption models
+     * @throws IllegalArgumentException           - if the input list is null or empty
+     * @throws UnitOfMeasureAlreadyExistException - if a UnitOfMeasureOption with the same name exists
      */
     @Transactional
-    public List<UnitOfMeasureOptionModel> createUnitOfMeasureOptions(List<UnitOfMeasureOptionModel> unitOfMeasureOptionModels){
-        if (unitOfMeasureOptionModels == null){
-            throw new IllegalArgumentException("Unit of Measure Option model cannot be null");
+    public List<UnitOfMeasureOptionModel> saveMany(List<UnitOfMeasureOptionModel> unitOfMeasureOptionModelList) {
+        if (unitOfMeasureOptionModelList == null || unitOfMeasureOptionModelList.isEmpty()) {
+            throw new IllegalArgumentException("Unit of measure option model list cannot be null or empty");
         }
-        List<UnitOfMeasureOptionModel> savedUnitOfMeasureModels = new ArrayList<>();
-        for (UnitOfMeasureOptionModel unitOfMeasureOptionModel: unitOfMeasureOptionModels){
-            UnitOfMeasureOptionModel savedUnitOfMeasureModel = unitOfMeasureOptionRepository.save(unitOfMeasureOptionModel);
-            savedUnitOfMeasureModels.add(savedUnitOfMeasureModel);
+        for (UnitOfMeasureOptionModel unitOfMeasureOptionModel : unitOfMeasureOptionModelList) {
+            if (unitOfMeasureOptionRepository.existsByName(unitOfMeasureOptionModel.getName())) {
+                throw new UnitOfMeasureAlreadyExistException("Unit of measure option already exists: " + unitOfMeasureOptionModel.getName());
+            }
         }
-        return savedUnitOfMeasureModels;
+        return unitOfMeasureOptionRepository.saveAll(unitOfMeasureOptionModelList);
     }
 
     /**
-     * Retrieves a single Unit of Measure Option entity by its ID.
-     * Throws a UnitOfMeasureNotFoundException if the Unit of Measure Option is not found or has been deleted.
+     * Retrieves a single Unit of Measure option model by its ID.
+     * Throws a UnitOfMeasureNotFoundException if the option is not found or has been deleted.
      *
-     * @param id the ID of the Unit of Measure Option to retrieve
-     * @return the Unit of Measure Option model if found and not deleted
-     * @throws UnitOfMeasureNotFoundException if the Unit of Measure Option is not found.
+     * @param id                              - the ID of the UnitOfMeasureOption to retrieve
+     * @return                                - the UnitOfMeasureOption model if found and not deleted
+     * @throws UnitOfMeasureNotFoundException - if the option is not found
+     * @throws NullPointerException           - if the ID is null
      */
     @Transactional
-    public UnitOfMeasureOptionModel readOne(Long id){
+    public UnitOfMeasureOptionModel readOne(String id) {
+        if (id == null) {
+            throw new NullPointerException("Unit of measure option ID cannot be null");
+        }
         UnitOfMeasureOptionModel unitOfMeasureOptionModel = unitOfMeasureOptionRepository.findById(id)
-                .orElseThrow(()-> new UnitOfMeasureNotFoundException("Unit of Measure Option not found with id:" + id));
-        if (unitOfMeasureOptionModel.getDeletedAt() != null){
-            throw new UnitOfMeasureNotFoundException("Unit of Measure Option not found with id:" + id);
+                .orElseThrow(() -> new UnitOfMeasureNotFoundException("Unit of Measure option not found with ID: " + id));
+        if (unitOfMeasureOptionModel.getDeletedAt() != null) {
+            throw new UnitOfMeasureNotFoundException("Unit of measure option not found with ID: " + id);
         }
         return unitOfMeasureOptionModel;
     }
 
     /**
-     * Retrieves a list of Unit of Measure Option objects based on the provided Unit of Measure Option IDs.
+     * Retrieves a list of UnitOfMeasureOption model based on the provided IDs.
      *
-     * @param unitOfMeasureOptionIds A list of Unit of Measure Option IDs to retrieve
-     * @return A list of UnitOfMeasureOptionModel objects that are not marked as deleted
-     * @throws UnitOfMeasureNotFoundException if a Unit of Measure Option with the given ID is not found
+     * @param idList                        - A list of UnitOfMeasureOption IDs to retrieve
+     * @return                              - A list of UnitOfMeasureOptionModel objects that are not marked as deleted
+     * @throws NullPointerException         - if the ID list is null or contains null IDs
      */
     @Transactional
-    public List<UnitOfMeasureOptionModel> readMany(List<Long> unitOfMeasureOptionIds){
-        if (unitOfMeasureOptionIds == null){
-            throw new IllegalArgumentException("Unit of Measure Option id cannot be null or empty");
+    public List<UnitOfMeasureOptionModel> readMany(List<String> idList) {
+        if (idList == null || idList.isEmpty()) {
+            throw new NullPointerException("Unit of Measure option ID list cannot be null");
         }
-        List<UnitOfMeasureOptionModel> models = new ArrayList<>();
-        for (Long id: unitOfMeasureOptionIds){
-            if (id == null){
-                throw new IllegalArgumentException("Unit of Measure Option id cannot be null or empty");
+        List<UnitOfMeasureOptionModel> modelList = new ArrayList<>();
+        for (String id : idList) {
+            if (id == null) {
+                throw new NullPointerException("Unit of Measure option ID cannot be null");
             }
             UnitOfMeasureOptionModel unitOfMeasureOptionModel = unitOfMeasureOptionRepository.findById(id)
-                    .orElseThrow(()-> new UnitOfMeasureNotFoundException("Unit of Measure Option not found with id:" + id));
-            if (unitOfMeasureOptionModel.getDeletedAt() == null){
-                models.add(unitOfMeasureOptionModel);
+                    .orElse(null);
+            if (unitOfMeasureOptionModel == null) {
+                continue;
+            }
+            if (unitOfMeasureOptionModel.getDeletedAt() == null) {
+                modelList.add(unitOfMeasureOptionModel);
             }
         }
-        return models;
+        return modelList;
     }
 
     /**
-     * Retrieve all Unit of Measure Options that are not marked as deleted
-     * @return a List of Unit of Measure Option objects where deleted is null
-     * @throws UnitOfMeasureNotFoundException if no Unit of Measure Option found
-     */
-    @Transactional
-    public List<UnitOfMeasureOptionModel> readAll(){
-        List<UnitOfMeasureOptionModel> unitOfMeasureOptionModels = unitOfMeasureOptionRepository.findByDeletedAtIsNull();
-        if (unitOfMeasureOptionModels.isEmpty()){
-            throw new UnitOfMeasureNotFoundException("No Unit of Measure Option found");
-        }
-        return unitOfMeasureOptionModels;
-    }
-
-    /**
-     * Retrieves all UnitOfMeasureOptionModels, including those marked as deleted.
+     * Retrieves all UnitOfMeasureOption model that are not marked as deleted.
      *
-     * @return A list of all UnitOfMeasureOptionModel objects
-     * @throws UnitOfMeasureNotFoundException if no Unit of Measure Option found
+     * @return - a List of UnitOfMeasureOption model where deletedAt is null
      */
     @Transactional
-    public List<UnitOfMeasureOptionModel> hardReadAll(){
-        List<UnitOfMeasureOptionModel> unitOfMeasureOptionModels = unitOfMeasureOptionRepository.findAll();
-        if (unitOfMeasureOptionModels.isEmpty()){
-            throw new UnitOfMeasureNotFoundException("No Unit of Measure Option found");
-        }
-        return unitOfMeasureOptionModels;
+    public List<UnitOfMeasureOptionModel> readAll() {
+        return unitOfMeasureOptionRepository.findByDeletedAtIsNull();
     }
 
     /**
-     * Updates a single UnitOfMeasureOptionModel identified by the provided ID.
-     * @param id The ID of the Unit of Measure Option to update
-     * @param model The UnitOfMeasureOptionModel containing updated data
-     * @return The updated UnitOfMeasureOptionModel
-     * @throws UnitOfMeasureNotFoundException if the UnitOfMeasureOptionModel is not found or is marked as deleted
-     */
-    @Transactional
-    public UnitOfMeasureOptionModel updateOne(Long id, UnitOfMeasureOptionModel model){
-        if (id == null){
-            throw new IllegalArgumentException("Unit of Measure Option id cannot be null");
-        }
-        if (model == null){
-            throw new IllegalArgumentException("Unit of Measure Option cannot be null");
-        }
-        UnitOfMeasureOptionModel unitOfMeasureOptionModel = unitOfMeasureOptionRepository.findById(id)
-                .orElseThrow(()-> new UnitOfMeasureNotFoundException("Unit of Measure Option not found with id:" + id));
-        if (unitOfMeasureOptionModel.getDeletedAt() != null){
-            throw new UnitOfMeasureNotFoundException("Unit of Measure Option is marked as deleted with id:" + id);
-        }
-        modelMapper.map(model, unitOfMeasureOptionModel);
-        unitOfMeasureOptionModel.setUpdatedAt(LocalDateTime.now());
-        return unitOfMeasureOptionRepository.save(unitOfMeasureOptionModel);
-    }
-
-    /**
-     * Updates multiple UnitOfMeasureOption models in a transactional manner.
+     * Retrieves all UnitOfMeasureOption models, including those marked as deleted.
      *
-     * @param models List of UnitOfMeasureOptionModel objects containing updated data
-     * @return List of updated UnitOfMeasureOptionModel objects
-     * @throws IllegalArgumentException if any UnitOfMeasureOptionModel is null
-     * @throws UnitOfMeasureNotFoundException if a UnitOfMeasureOptionModel is not found or marked as deleted
+     * @return - A list of all UnitOfMeasureOptionModel objects
      */
     @Transactional
-    public List<UnitOfMeasureOptionModel> updateMany(List<UnitOfMeasureOptionModel> models){
-        if (models == null || models.isEmpty()){
-            throw new IllegalArgumentException("Unit of Measure Option model List cannot be null or empty");
-        }
-        List<UnitOfMeasureOptionModel> updatedModel = new ArrayList<>();
-        for (UnitOfMeasureOptionModel model: models){
-            if (model.getId() == null){
-                throw new IllegalArgumentException("Unit of Measure Option id cannot be null");
-            }
-            UnitOfMeasureOptionModel existingModel = unitOfMeasureOptionRepository.findById(model.getId())
-                    .orElseThrow(()-> new UnitOfMeasureNotFoundException("Unit of Measure Option not found with id:" + model.getId()));
-            if (existingModel.getDeletedAt() != null){
-                throw new UnitOfMeasureNotFoundException("Unit of Measure Option with id:" + model.getId() + " marked as deleted");
-            }
-            modelMapper.map(model, existingModel);
-            existingModel.setUpdatedAt(LocalDateTime.now());
-            updatedModel.add(unitOfMeasureOptionRepository.save(existingModel));
-        }
-        return updatedModel;
+    public List<UnitOfMeasureOptionModel> hardReadAll() {
+        return unitOfMeasureOptionRepository.findAll();
     }
 
     /**
-     * Updates a single Unit of Measure Option model by ID.
-     * @param id The ID of the Unit of Measure Option to update
-     * @param model The UnitOfMeasureOptionModel containing updated data
-     * @return The updated UnitOfMeasureOptionModel
-     * @throws IllegalArgumentException if the Unit of Measure Option ID is null
-     * @throws UnitOfMeasureNotFoundException if the Unit of Measure Option is not found
-     */
-    @Transactional
-    public UnitOfMeasureOptionModel hardUpdateOne(Long id, UnitOfMeasureOptionModel model){
-        if (id == null) {
-            throw new IllegalArgumentException("Unit of Measure Option ID cannot be null or empty");
-        }
-        if (model == null) {
-            throw new IllegalArgumentException("Unit of Measure Option model cannot be null");
-        }
-        UnitOfMeasureOptionModel unitOfMeasureOptionModel = unitOfMeasureOptionRepository.findById(id)
-                .orElseThrow(()-> new UnitOfMeasureNotFoundException("Unit of Measure Option not found with id:" + id));
-
-        modelMapper.map(model, unitOfMeasureOptionModel);
-        unitOfMeasureOptionModel.setUpdatedAt(LocalDateTime.now());
-        return unitOfMeasureOptionRepository.save(unitOfMeasureOptionModel);
-    }
-
-    /**
-     * Updates multiple UnitOfMeasureOptionModel models by their IDs
-     * @param unitOfMeasureOptionModels List of UnitOfMeasureOptionModel objects containing updated data
-     * @return List of updated UnitOfMeasureOptionModel objects
-     * @throws IllegalArgumentException if any Unit of Measure Option ID is null
-     * @throws UnitOfMeasureNotFoundException if any Unit of Measure Option is not found
-     */
-    @Transactional
-    public List<UnitOfMeasureOptionModel> hardUpdateAll(List<UnitOfMeasureOptionModel> unitOfMeasureOptionModels){
-        if (unitOfMeasureOptionModels == null || unitOfMeasureOptionModels.isEmpty()) {
-            throw new IllegalArgumentException("Unit of Measure Option model list cannot be null or empty");
-        }
-        List<UnitOfMeasureOptionModel> updatedModels = new ArrayList<>();
-        for (UnitOfMeasureOptionModel model: unitOfMeasureOptionModels){
-            if (model.getId() == null){
-                throw new IllegalArgumentException("Unit of Measure Option id cannot be null on Hard update all");
-            }
-            UnitOfMeasureOptionModel unitOfMeasureOptionModel = unitOfMeasureOptionRepository.findById(model.getId())
-                    .orElseThrow(()-> new UnitOfMeasureNotFoundException("Unit of Measure Option not found with id:" + model.getId()));
-
-            modelMapper.map(model, unitOfMeasureOptionModel);
-            unitOfMeasureOptionModel.setUpdatedAt(LocalDateTime.now());
-            updatedModels.add(unitOfMeasureOptionRepository.save(unitOfMeasureOptionModel));
-        }
-        return updatedModels;
-    }
-
-    /**
-     * Soft deletes a Unit of Measure Option by ID in a transactional manner.
+     * Updates a single UnitOfMeasureOption model identified by the provided ID.
      *
-     * @param id The ID of the Unit of Measure Option to soft delete
-     * @return The soft-deleted UnitOfMeasureOptionModel
-     * @throws IllegalArgumentException if the Unit of Measure Option ID is null
-     * @throws UnitOfMeasureNotFoundException if the Unit of Measure Option is not found
-     * @throws IllegalStateException if the Unit of Measure Option is already deleted
+     * @param model                           - The UnitOfMeasureOptionModel containing updated data
+     * @return                                - The updated UnitOfMeasureOptionModel
+     * @throws UnitOfMeasureNotFoundException - if the option is not found or is marked as deleted
      */
     @Transactional
-    public UnitOfMeasureOptionModel softDeleteUnitOfMeasureOption(Long id){
-        if (id == null) {
-            throw new IllegalArgumentException("Unit of Measure Option ID cannot be null or empty");
+    public UnitOfMeasureOptionModel updateOne(UnitOfMeasureOptionModel model) {
+        UnitOfMeasureOptionModel existing = unitOfMeasureOptionRepository.findById(model.getId())
+                .orElseThrow(() -> new UnitOfMeasureNotFoundException("Unit of Measure option not found with ID: " + model.getId()));
+        if (existing.getDeletedAt() != null) {
+            throw new UnitOfMeasureNotFoundException("Unit of measure option with ID: " + model.getId() + " is not found");
         }
+        return unitOfMeasureOptionRepository.save(model);
+    }
+
+    /**
+     * Updates multiple UnitOfMeasureOption model in a transactional manner.
+     *
+     * @param modelList                       - List of UnitOfMeasureOptionModel objects containing updated data
+     * @return                                - List of updated UnitOfMeasureOptionModel objects
+     * @throws UnitOfMeasureNotFoundException - if any option is not found or is marked as deleted
+     */
+    @Transactional
+    public List<UnitOfMeasureOptionModel> updateMany(List<UnitOfMeasureOptionModel> modelList) {
+        if (modelList == null || modelList.isEmpty()) {
+            throw new IllegalArgumentException("Unit of measure option model list cannot be null or empty");
+        }
+        for (UnitOfMeasureOptionModel model : modelList) {
+            UnitOfMeasureOptionModel existing = unitOfMeasureOptionRepository.findById(model.getId())
+                    .orElseThrow(() -> new UnitOfMeasureNotFoundException("Unit of Measure option not found with ID: " + model.getId()));
+            if (existing.getDeletedAt() != null) {
+                throw new UnitOfMeasureNotFoundException("Unit of measure option with ID: " + model.getId() + " is not found");
+            }
+        }
+        return unitOfMeasureOptionRepository.saveAll(modelList);
+    }
+
+    /**
+     * Updates a single UnitOfMeasureOption model by ID, including soft-deleted ones.
+     *
+     * @param model - The UnitOfMeasureOptionModel containing updated data
+     * @return      - The updated UnitOfMeasureOptionModel
+     */
+    @Transactional
+    public UnitOfMeasureOptionModel hardUpdate(UnitOfMeasureOptionModel model) {
+        return unitOfMeasureOptionRepository.save(model);
+    }
+
+    /**
+     * Updates all UnitOfMeasureOption model by their ID, including soft-deleted ones.
+     *
+     * @param unitOfMeasureOptionModelList - List of UnitOfMeasureOptionModel objects containing updated data
+     * @return                             - List of updated UnitOfMeasureOptionModel objects
+     */
+    @Transactional
+    public List<UnitOfMeasureOptionModel> hardUpdateAll(List<UnitOfMeasureOptionModel> unitOfMeasureOptionModelList) {
+        return unitOfMeasureOptionRepository.saveAll(unitOfMeasureOptionModelList);
+    }
+
+    /**
+     * Soft deletes a Unit of Measure option by ID.
+     *
+     * @param id                              - The ID of the UnitOfMeasureOption to soft delete
+     * @return                                - The soft-deleted UnitOfMeasureOptionModel
+     * @throws UnitOfMeasureNotFoundException - if the option is not found
+     */
+    @Transactional
+    public UnitOfMeasureOptionModel softDelete(String id) {
         UnitOfMeasureOptionModel unitOfMeasureOptionModel = unitOfMeasureOptionRepository.findById(id)
-                .orElseThrow(()-> new UnitOfMeasureNotFoundException("Unit of Measure Option not found with id:" + id));
-        if (unitOfMeasureOptionModel.getDeletedAt() != null){
-            throw new IllegalStateException("Unit of Measure Option with id:" + id + " is already deleted");
-        }
+                .orElseThrow(() -> new UnitOfMeasureNotFoundException("Unit of measure option not found with id: " + id));
         unitOfMeasureOptionModel.setDeletedAt(LocalDateTime.now());
         return unitOfMeasureOptionRepository.save(unitOfMeasureOptionModel);
     }
 
     /**
-     * Hard deletes a Unit of Measure Option by ID
-     * @param id ID of the Unit of Measure Option to hard delete
+     * Hard deletes a Unit of Measure option by ID.
+     *
+     * @param id                              - ID of the UnitOfMeasureOption to hard delete
+     * @throws NullPointerException           - if the ID is null
+     * @throws UnitOfMeasureNotFoundException - if the option is not found
      */
     @Transactional
-    public void hardDeleteUnitOfMeasureOption(Long id){
-        if (!unitOfMeasureOptionRepository.existsById(id)){
-            throw new UnitOfMeasureNotFoundException("Unit of Measure Option not found with id:" + id);
+    public void hardDelete(String id) {
+        if (id == null) {
+            throw new NullPointerException("Unit of measure option ID cannot be null");
+        }
+        if (!unitOfMeasureOptionRepository.existsById(id)) {
+            throw new UnitOfMeasureNotFoundException("Unit of measure option not found with id: " + id);
         }
         unitOfMeasureOptionRepository.deleteById(id);
     }
 
     /**
-     * Soft deletes multiple Unit of Measure Options by their IDs.
+     * Soft deletes multiple Unit of Measure options by their ID.
      *
-     * @param ids List of Unit of Measure Option IDs to be soft deleted
-     * @return List of soft deleted Unit of Measure Option objects
-     * @throws UnitOfMeasureNotFoundException if any Unit of Measure Option IDs are not found
-     * @throws IllegalStateException if any Unit of Measure Option is already deleted
+     * @param idList                          - List of UnitOfMeasureOption IDs to be soft deleted
+     * @return                                - List of soft-deleted UnitOfMeasureOption objects
+     * @throws UnitOfMeasureNotFoundException - if any IDs are not found
      */
     @Transactional
-    public List<UnitOfMeasureOptionModel> softDeleteUnitOfMeasureOptions(List<Long> ids){
-        if (ids == null) {
-            throw new IllegalArgumentException("Unit of Measure Option IDs list cannot be null or empty");
+    public List<UnitOfMeasureOptionModel> softDeleteMany(List<String> idList) {
+        List<UnitOfMeasureOptionModel> unitOfMeasureOptionModelList = unitOfMeasureOptionRepository.findAllById(idList);
+        if (unitOfMeasureOptionModelList.isEmpty()) {
+            throw new UnitOfMeasureNotFoundException("No Unit of measure options found with provided IDs: " + idList);
         }
-        List<UnitOfMeasureOptionModel> unitOfMeasureOptionModels = unitOfMeasureOptionRepository.findAllById(ids);
-
-        List<Long> foundIds = new ArrayList<>();
-        for (UnitOfMeasureOptionModel model: unitOfMeasureOptionModels){
-            foundIds.add(model.getId());
-        }
-        List<Long> missingIds = new ArrayList<>();
-        for (Long id: ids){
-            if(!foundIds.contains(id)){
-                missingIds.add(id);
-            }
-        }
-        if (!missingIds.isEmpty()){
-            throw new UnitOfMeasureNotFoundException("Unit of Measure Option not found with ids:" + missingIds);
-        }
-        for (UnitOfMeasureOptionModel model: unitOfMeasureOptionModels){
-            if (model.getDeletedAt() != null){
-                throw new IllegalArgumentException("Unit of Measure Option with id:" + model.getId() + " is already deleted");
-            }
+        for (UnitOfMeasureOptionModel model : unitOfMeasureOptionModelList) {
             model.setDeletedAt(LocalDateTime.now());
         }
-        unitOfMeasureOptionRepository.saveAll(unitOfMeasureOptionModels);
-        return unitOfMeasureOptionModels;
+        return unitOfMeasureOptionRepository.saveAll(unitOfMeasureOptionModelList);
     }
 
     /**
-     * Hard deletes multiple Unit of Measure Options by IDs
-     * @param ids List of Unit of Measure Option IDs to hard delete
+     * Hard deletes multiple Unit of Measure options by IDs.
+     *
+     * @param idList - List of UnitOfMeasureOption IDs to hard delete
      */
     @Transactional
-    public void hardDeleteUnitOfMeasureOptions(List<Long> ids){
-        List<UnitOfMeasureOptionModel> unitOfMeasureOptionModels = unitOfMeasureOptionRepository.findAllById(ids);
+    public void hardDeleteMany(List<String> idList) {
+        unitOfMeasureOptionRepository.deleteAllById(idList);
+    }
 
-        List<Long> foundIds = new ArrayList<>();
-        for (UnitOfMeasureOptionModel model: unitOfMeasureOptionModels){
-            foundIds.add(model.getId());
-        }
-        List<Long> missingIds = new ArrayList<>();
-        for (Long id: ids){
-            if (!foundIds.contains(id)){
-                missingIds.add(id);
-            }
-        }
-        if (!missingIds.isEmpty()){
-            throw new UnitOfMeasureNotFoundException("Unit of Measure Option not found with ids:" + missingIds);
-        }
-        unitOfMeasureOptionRepository.deleteAllById(ids);
+    /**
+     * Hard deletes all Unit of Measure options, including soft-deleted ones.
+     */
+    @Transactional
+    public void hardDeleteAll() {
+        unitOfMeasureOptionRepository.deleteAll();
     }
 }
