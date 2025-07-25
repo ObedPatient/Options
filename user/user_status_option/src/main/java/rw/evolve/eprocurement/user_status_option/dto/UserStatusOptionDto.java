@@ -13,7 +13,7 @@ public class UserStatusOptionDto {
 
     /** Unique identifier for the User status option */
     @JsonProperty("user_status_option_id")
-    private Long id;
+    private String id;
 
     /** name of User status option*/
     @JsonProperty("name")

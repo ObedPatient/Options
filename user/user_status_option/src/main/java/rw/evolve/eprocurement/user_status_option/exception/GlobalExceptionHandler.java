@@ -27,7 +27,6 @@ public class GlobalExceptionHandler {
                 .body(new ResponseMessageDto(
                         "Internal Server Error: " + e.getMessage(),
                         "Error",
-                        500,
                         LocalDateTime.now()
                 ));
     }

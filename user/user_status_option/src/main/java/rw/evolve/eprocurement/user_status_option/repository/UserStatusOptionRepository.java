@@ -10,7 +10,7 @@ import rw.evolve.eprocurement.user_status_option.model.UserStatusOptionModel;
 import java.util.List;
 
 @Repository
-public interface UserStatusOptionRepository extends JpaRepository<UserStatusOptionModel, Long> {
+public interface UserStatusOptionRepository extends JpaRepository<UserStatusOptionModel, String> {
 
     /**
      * @param name of the UserStatusOption to check if exists
