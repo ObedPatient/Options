@@ -16,17 +16,14 @@ import java.time.LocalDateTime;
 @MappedSuperclass
 public class GeneralTimestampBaseModel {
 
-    /** Timestamp when the Country option was created */
     @CreationTimestamp
     @Column(name = "created_at", length = 255, nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    /** Timestamp when the Country option was last updated */
     @UpdateTimestamp
     @Column(name = "updated_at", length = 255)
     private LocalDateTime updatedAt;
 
-    /** Timestamp when the Country option was deleted */
     @Column(name = "deleted_at", length = 30)
     private LocalDateTime deletedAt;
 }

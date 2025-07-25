@@ -10,7 +10,7 @@ import rw.evolve.eprocurement.country.model.CountryOptionModel;
 import java.util.List;
 
 @Repository
-public interface CountryOptionRepository extends JpaRepository<CountryOptionModel, Long> {
+public interface CountryOptionRepository extends JpaRepository<CountryOptionModel, String> {
 
 
     /**
@@ -21,7 +21,7 @@ public interface CountryOptionRepository extends JpaRepository<CountryOptionMode
 
 
     /**
-     * Retrieves a list of {CountryOptionModel} entities that have not been soft-deleted.
+     * Retrieves a list of {CountryOptionModel} model that have not been soft-deleted.
      * Only Scheme Options with a null {deletedAt} field are returned.
      *
      * @return A list of non-deleted {CountryOptionModel} entities.

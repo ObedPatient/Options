@@ -1,12 +1,11 @@
 /**
  * Service for managing CountryOption entities.
  * Provides functionality to create, read, update, and delete CountryOption data, supporting both
- * soft and hard deletion operations.
+ * soft and hard deletion operations through the corresponding repository.
  */
 package rw.evolve.eprocurement.country.service;
 
 import jakarta.transaction.Transactional;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import rw.evolve.eprocurement.country.exception.CountryOptionAlreadyExistException;
@@ -24,315 +23,258 @@ public class CountryOptionService {
     @Autowired
     private CountryOptionRepository countryOptionRepository;
 
-    private final ModelMapper modelMapper = new ModelMapper();
-
     /**
-     * Creates a single Country Option entity.
+     * Creates a single Country option model with a generated ID.
      *
-     * @param countryOptionModel the CountryOptionModel to be created
-     * @return the saved CountryOption model
+     * @param countryOptionModel                  - the CountryOptionModel to be created
+     * @return                                    - the saved CountryOption model
+     * @throws CountryOptionAlreadyExistException - if a CountryOption with the same name exists
      */
     @Transactional
-    public CountryOptionModel createCountryOption(CountryOptionModel countryOptionModel){
-        if (countryOptionRepository.existsByName(countryOptionModel.getName())){
-            throw new CountryOptionAlreadyExistException("Country Option Already exists: " + countryOptionModel.getName());
+    public CountryOptionModel save(CountryOptionModel countryOptionModel) {
+        if (countryOptionModel == null) {
+            throw new NullPointerException("Country option cannot be null");
+        }
+        if (countryOptionRepository.existsByName(countryOptionModel.getName())) {
+            throw new CountryOptionAlreadyExistException("Country option already exists: " + countryOptionModel.getName());
         }
         return countryOptionRepository.save(countryOptionModel);
     }
 
     /**
-     * Creates multiple Country Option entities, each with a unique ID.
-     * Iterates through the provided list of Country Option models
+     * Creates multiple Country Option models, each with a unique generated ID.
      *
-     * @param countryOptionModels the list of Country Option models to be created
-     * @return a list of saved Country Option models.
+     * @param countryOptionModelList    - the list of Country option models to be created
+     * @return                          - a list of saved Country Option models
+     * @throws IllegalArgumentException - if the input list is null or empty
      */
     @Transactional
-    public List<CountryOptionModel> createCountryOptions(List<CountryOptionModel> countryOptionModels){
-        if (countryOptionModels == null){
-            throw new IllegalArgumentException("Country Option model cannot be null");
+    public List<CountryOptionModel> saveMany(List<CountryOptionModel> countryOptionModelList) {
+        if (countryOptionModelList == null || countryOptionModelList.isEmpty()) {
+            throw new IllegalArgumentException("Country option model list cannot be null or empty");
         }
-        List<CountryOptionModel> savedCountryModels = new ArrayList<>();
-        for (CountryOptionModel countryOptionModel: countryOptionModels){
-            CountryOptionModel savedCountryModel = countryOptionRepository.save(countryOptionModel);
-            savedCountryModels.add(savedCountryModel);
+        for (CountryOptionModel countryOptionModel : countryOptionModelList) {
+            if (countryOptionRepository.existsByName(countryOptionModel.getName())) {
+                throw new CountryOptionAlreadyExistException("Country option already exists: " + countryOptionModel.getName());
+            }
         }
-        return savedCountryModels;
+        return countryOptionRepository.saveAll(countryOptionModelList);
     }
 
     /**
-     * Retrieves a single Country Option entity by its ID.
-     * Throws a CountryOptionNotFoundException if the Country Option is not found or has been deleted.
+     * Retrieves a single Country option model by its ID.
+     * Throws a CountryOptionNotFoundException if the Country option is not found or has been deleted.
      *
-     * @param id the ID of the Country Option to retrieve
-     * @return the Country Option model if found and not deleted
-     * @throws CountryOptionNotFoundException if the Country Option is not found.
+     * @param id                              - the ID of the Country option to retrieve
+     * @return                                - the Country option model if found and not deleted
+     * @throws CountryOptionNotFoundException - if the Country option is not found
+     * @throws NullPointerException           - if Country option ID is null
      */
     @Transactional
-    public CountryOptionModel readOne(Long id){
+    public CountryOptionModel readOne(String id) {
+        if (id == null) {
+            throw new NullPointerException("Country option ID cannot be null");
+        }
         CountryOptionModel countryOptionModel = countryOptionRepository.findById(id)
-                .orElseThrow(() -> new CountryOptionNotFoundException("Country Option not found with id:" + id));
-        if (countryOptionModel.getDeletedAt() != null){
-            throw new CountryOptionNotFoundException("Country Option not found with id:" + id);
+                .orElseThrow(() -> new CountryOptionNotFoundException("Country option not found with ID: " + id));
+        if (countryOptionModel.getDeletedAt() != null) {
+            throw new CountryOptionNotFoundException("Country option not found with ID: " + id);
         }
         return countryOptionModel;
     }
 
     /**
-     * Retrieves a list of Country Option objects based on the provided Country Option IDs.
+     * Retrieves a list of CountryOption models based on the provided CountryOption IDs.
      *
-     * @param countryOptionIds A list of Country Option IDs to retrieve
-     * @return A list of CountryOptionModel objects that are not marked as deleted
-     * @throws CountryOptionNotFoundException if a Country Option with the given ID is not found
+     * @param countryOptionIdList      - A list of CountryOption IDs to retrieve
+     * @return                         - A list of CountryOptionModel objects that are not marked as deleted
+     * @throws NullPointerException    - if CountryOption ID list is null
      */
     @Transactional
-    public List<CountryOptionModel> readMany(List<Long> countryOptionIds){
-        if (countryOptionIds == null){
-            throw new IllegalArgumentException("Country Option id cannot be null or empty");
+    public List<CountryOptionModel> readMany(List<String> countryOptionIdList) {
+        if (countryOptionIdList == null || countryOptionIdList.isEmpty()) {
+            throw new NullPointerException("Country option ID list cannot be null");
         }
-        List<CountryOptionModel> models = new ArrayList<>();
-        for (Long id: countryOptionIds){
-            if (id == null){
-                throw new IllegalArgumentException("Country Option id cannot be null or empty");
+        List<CountryOptionModel> modelList = new ArrayList<>();
+        for (String id : countryOptionIdList) {
+            if (id == null) {
+                throw new NullPointerException("Country option ID cannot be null");
             }
             CountryOptionModel countryOptionModel = countryOptionRepository.findById(id)
-                    .orElseThrow(() -> new CountryOptionNotFoundException("Country Option not found with id:" + id));
-            if (countryOptionModel.getDeletedAt() == null){
-                models.add(countryOptionModel);
+                    .orElse(null);
+            if (countryOptionModel == null)
+                continue;
+            if (countryOptionModel.getDeletedAt() == null) {
+                modelList.add(countryOptionModel);
             }
         }
-        return models;
+        return modelList;
     }
 
     /**
-     * Retrieve all Country Options that are not marked as deleted
-     * @return a List of Country Option objects where deleted is null
-     * @throws CountryOptionNotFoundException if no Country Option found
-     */
-    @Transactional
-    public List<CountryOptionModel> readAll(){
-        List<CountryOptionModel> countryOptionModels = countryOptionRepository.findByDeletedAtIsNull();
-        if (countryOptionModels.isEmpty()){
-            throw new CountryOptionNotFoundException("No Country Option found");
-        }
-        return countryOptionModels;
-    }
-
-    /**
-     * Retrieves all CountryOptionModels, including those marked as deleted.
+     * Retrieve all Country options that are not marked as deleted
      *
-     * @return A list of all CountryOptionModel objects
-     * @throws CountryOptionNotFoundException if no Country Option found
+     * @return         - a List of Country option models where deletedAt is null
      */
     @Transactional
-    public List<CountryOptionModel> hardReadAll(){
-        List<CountryOptionModel> countryOptionModels = countryOptionRepository.findAll();
-        if (countryOptionModels.isEmpty()){
-            throw new CountryOptionNotFoundException("No Country Option found");
-        }
-        return countryOptionModels;
+    public List<CountryOptionModel> readAll() {
+        return countryOptionRepository.findByDeletedAtIsNull();
     }
 
     /**
-     * Updates a single CountryOptionModel identified by the provided ID.
-     * @param id The ID of the Country Option to update
-     * @param model The CountryOptionModel containing updated data
-     * @return The updated CountryOptionModel
-     * @throws CountryOptionNotFoundException if the CountryOptionModel is not found or is marked as deleted
-     */
-    @Transactional
-    public CountryOptionModel updateOne(Long id, CountryOptionModel model){
-        if (id == null){
-            throw new IllegalArgumentException("Country Option id cannot be null");
-        }
-        if (model == null){
-            throw new IllegalArgumentException("Country Option cannot be null");
-        }
-        CountryOptionModel countryOptionModel = countryOptionRepository.findById(id)
-                .orElseThrow(() -> new CountryOptionNotFoundException("Country Option not found with id:" + id));
-        if (countryOptionModel.getDeletedAt() != null){
-            throw new CountryOptionNotFoundException("Country Option is marked as deleted with id:" + id);
-        }
-        modelMapper.map(model, countryOptionModel);
-        countryOptionModel.setUpdatedAt(LocalDateTime.now());
-        return countryOptionRepository.save(countryOptionModel);
-    }
-
-    /**
-     * Updates multiple CountryOption models in a transactional manner.
+     * Retrieves all Country Option models, including those marked as deleted.
      *
-     * @param models List of CountryOptionModel objects containing updated data
-     * @return List of updated CountryOptionModel objects
-     * @throws IllegalArgumentException if any CountryOptionModel is null
-     * @throws CountryOptionNotFoundException if a CountryOptionModel is not found or marked as deleted
+     * @return         - A list of all CountryOptionModel objects
      */
     @Transactional
-    public List<CountryOptionModel> updateMany(List<CountryOptionModel> models){
-        if (models == null || models.isEmpty()){
-            throw new IllegalArgumentException("Country Option model List cannot be null or empty");
-        }
-        List<CountryOptionModel> updatedModel = new ArrayList<>();
-        for (CountryOptionModel model: models){
-            if (model.getId() == null){
-                throw new IllegalArgumentException("Country Option id cannot be null");
-            }
-            CountryOptionModel existingModel = countryOptionRepository.findById(model.getId())
-                    .orElseThrow(() -> new CountryOptionNotFoundException("Country Option not found with id:" + model.getId()));
-            if (existingModel.getDeletedAt() != null){
-                throw new CountryOptionNotFoundException("Country Option with id:" + model.getId() + " marked as deleted");
-            }
-            modelMapper.map(model, existingModel);
-            existingModel.setUpdatedAt(LocalDateTime.now());
-            updatedModel.add(countryOptionRepository.save(existingModel));
-        }
-        return updatedModel;
+    public List<CountryOptionModel> hardReadAll() {
+        return countryOptionRepository.findAll();
     }
 
     /**
-     * Updates a single Country Option model by ID.
-     * @param id The ID of the Country Option to update
-     * @param model The CountryOptionModel containing updated data
-     * @return The updated CountryOptionModel
-     * @throws IllegalArgumentException if the Country Option ID is null
-     * @throws CountryOptionNotFoundException if the Country Option is not found
+     * Updates a single Country Option model identified by the provided ID.
+     *
+     * @param model                           - The CountryOptionModel containing updated data
+     * @return                                - The updated CountryOptionModel
+     * @throws CountryOptionNotFoundException - if Country option is not found or is marked as deleted
      */
     @Transactional
-    public CountryOptionModel hardUpdateOne(Long id, CountryOptionModel model){
+    public CountryOptionModel updateOne(CountryOptionModel model) {
+        if (model == null || model.getId() == null) {
+            throw new NullPointerException("Country option or ID cannot be null");
+        }
+        CountryOptionModel existing = countryOptionRepository.findById(model.getId())
+                .orElseThrow(() -> new CountryOptionNotFoundException("Country option not found with ID: " + model.getId()));
+        if (existing.getDeletedAt() != null) {
+            throw new CountryOptionNotFoundException("Country option with ID: " + model.getId() + " is not found");
+        }
+        return countryOptionRepository.save(model);
+    }
+
+    /**
+     * Updates multiple Country option models in a transactional manner.
+     *
+     * @param modelList                       - List of CountryOptionModel objects containing updated data
+     * @return                                - List of updated CountryOptionModel objects
+     * @throws CountryOptionNotFoundException - if Country option is not found or is marked as deleted
+     */
+    @Transactional
+    public List<CountryOptionModel> updateMany(List<CountryOptionModel> modelList) {
+        if (modelList == null || modelList.isEmpty()) {
+            throw new IllegalArgumentException("Country option model list cannot be null or empty");
+        }
+        for (CountryOptionModel model : modelList) {
+            if (model.getId() == null) {
+                throw new NullPointerException("Country option ID cannot be null");
+            }
+            CountryOptionModel existing = countryOptionRepository.findById(model.getId())
+                    .orElseThrow(() -> new CountryOptionNotFoundException("Country option not found with ID: " + model.getId()));
+            if (existing.getDeletedAt() != null) {
+                throw new CountryOptionNotFoundException("Country option with ID: " + model.getId() + " is not found");
+            }
+        }
+        return countryOptionRepository.saveAll(modelList);
+    }
+
+    /**
+     * Updates a single Country option model by ID, including deleted ones.
+     *
+     * @param model                           - The CountryOptionModel containing updated data
+     * @return                                - The updated CountryOptionModel
+     * @throws CountryOptionNotFoundException - if Country option is not found
+     */
+    @Transactional
+    public CountryOptionModel hardUpdate(CountryOptionModel model) {
+        if (model == null || model.getId() == null) {
+            throw new NullPointerException("Country option or ID cannot be null");
+        }
+        return countryOptionRepository.save(model);
+    }
+
+    /**
+     * Updates multiple CountryOption models by their IDs, including deleted ones.
+     *
+     * @param countryOptionModelList - List of CountryOptionModel objects containing updated data
+     * @return                       - List of updated CountryOptionModel objects
+     */
+    @Transactional
+    public List<CountryOptionModel> hardUpdateAll(List<CountryOptionModel> countryOptionModelList) {
+        if (countryOptionModelList == null || countryOptionModelList.isEmpty()) {
+            throw new IllegalArgumentException("Country option model list cannot be null or empty");
+        }
+        return countryOptionRepository.saveAll(countryOptionModelList);
+    }
+
+    /**
+     * Soft deletes a Country option by ID.
+     *
+     * @param id                              - ID of the Country option to soft delete
+     * @return                                - The soft-deleted CountryOptionModel
+     * @throws CountryOptionNotFoundException - if Country option id is not found
+     */
+    @Transactional
+    public CountryOptionModel softDelete(String id) {
         if (id == null) {
-            throw new IllegalArgumentException("Country Option ID cannot be null or empty");
-        }
-        if (model == null) {
-            throw new IllegalArgumentException("Country Option model cannot be null");
+            throw new NullPointerException("Country option ID cannot be null");
         }
         CountryOptionModel countryOptionModel = countryOptionRepository.findById(id)
-                .orElseThrow(() -> new CountryOptionNotFoundException("Country Option not found with id:" + id));
-
-        modelMapper.map(model, countryOptionModel);
-        countryOptionModel.setUpdatedAt(LocalDateTime.now());
-        return countryOptionRepository.save(countryOptionModel);
-    }
-
-    /**
-     * Updates multiple CountryOptionModel models by their IDs
-     * @param countryOptionModels List of CountryOptionModel objects containing updated data
-     * @return List of updated CountryOptionModel objects
-     * @throws IllegalArgumentException if any Country Option ID is null
-     * @throws CountryOptionNotFoundException if any Country Option is not found
-     */
-    @Transactional
-    public List<CountryOptionModel> hardUpdateAll(List<CountryOptionModel> countryOptionModels){
-        if (countryOptionModels == null || countryOptionModels.isEmpty()) {
-            throw new IllegalArgumentException("Country Option model list cannot be null or empty");
-        }
-        List<CountryOptionModel> updatedModels = new ArrayList<>();
-        for (CountryOptionModel model: countryOptionModels){
-            if (model.getId() == null){
-                throw new IllegalArgumentException("Country Option id cannot be null on Hard update all");
-            }
-            CountryOptionModel countryOptionModel = countryOptionRepository.findById(model.getId())
-                    .orElseThrow(() -> new CountryOptionNotFoundException("Country Option not found with id:" + model.getId()));
-
-            modelMapper.map(model, countryOptionModel);
-            countryOptionModel.setUpdatedAt(LocalDateTime.now());
-            updatedModels.add(countryOptionRepository.save(countryOptionModel));
-        }
-        return updatedModels;
-    }
-
-    /**
-     * Soft deletes a Country Option by ID in a transactional manner.
-     *
-     * @param id The ID of the Country Option to soft delete
-     * @return The soft-deleted CountryOptionModel
-     * @throws IllegalArgumentException if the Country Option ID is null
-     * @throws CountryOptionNotFoundException if the Country Option is not found
-     * @throws IllegalStateException if the Country Option is already deleted
-     */
-    @Transactional
-    public CountryOptionModel softDeleteCountryOption(Long id){
-        if (id == null) {
-            throw new IllegalArgumentException("Country Option ID cannot be null or empty");
-        }
-        CountryOptionModel countryOptionModel = countryOptionRepository.findById(id)
-                .orElseThrow(() -> new CountryOptionNotFoundException("Country Option not found with id:" + id));
-        if (countryOptionModel.getDeletedAt() != null){
-            throw new IllegalStateException("Country Option with id:" + id + " is already deleted");
-        }
+                .orElseThrow(() -> new CountryOptionNotFoundException("Country option not found with id: " + id));
         countryOptionModel.setDeletedAt(LocalDateTime.now());
         return countryOptionRepository.save(countryOptionModel);
     }
 
     /**
-     * Hard deletes a Country Option by ID
-     * @param id ID of the Country Option to hard delete
+     * Hard deletes a Country option by ID.
+     *
+     * @param id                              - ID of the Country option to hard delete
+     * @throws NullPointerException           - if the Country option ID is null
+     * @throws CountryOptionNotFoundException - if the Country option is not found
      */
     @Transactional
-    public void hardDeleteCountryOption(Long id){
-        if (!countryOptionRepository.existsById(id)){
-            throw new CountryOptionNotFoundException("Country Option not found with id:" + id);
+    public void hardDelete(String id) {
+        if (id == null) {
+            throw new NullPointerException("Country option ID cannot be null");
+        }
+        if (!countryOptionRepository.existsById(id)) {
+            throw new CountryOptionNotFoundException("Country option not found with id: " + id);
         }
         countryOptionRepository.deleteById(id);
     }
 
     /**
-     * Soft deletes multiple Country Options by their IDs.
+     * Soft deletes multiple Country options by their IDs.
      *
-     * @param ids List of Country Option IDs to be soft deleted
-     * @return List of soft deleted Country Option objects
-     * @throws CountryOptionNotFoundException if any Country Option IDs are not found
-     * @throws IllegalStateException if any Country Option is already deleted
+     * @param idList                          - List of Country option IDs to be soft deleted
+     * @return                                - List of soft-deleted CountryOption objects
+     * @throws CountryOptionNotFoundException - if any Country option IDs are not found
      */
     @Transactional
-    public List<CountryOptionModel> softDeleteCountryOptions(List<Long> ids){
-        if (ids == null) {
-            throw new IllegalArgumentException("Country Option IDs list cannot be null or empty");
+    public List<CountryOptionModel> softDeleteMany(List<String> idList) {
+        List<CountryOptionModel> countryOptionModelList = countryOptionRepository.findAllById(idList);
+        if (countryOptionModelList.isEmpty()) {
+            throw new CountryOptionNotFoundException("No Country options found with provided IDList: " + idList);
         }
-        List<CountryOptionModel> countryOptionModels = countryOptionRepository.findAllById(ids);
-
-        List<Long> foundIds = new ArrayList<>();
-        for (CountryOptionModel model: countryOptionModels){
-            foundIds.add(model.getId());
-        }
-        List<Long> missingIds = new ArrayList<>();
-        for (Long id: ids){
-            if(!foundIds.contains(id)){
-                missingIds.add(id);
-            }
-        }
-        if (!missingIds.isEmpty()){
-            throw new CountryOptionNotFoundException("Country Option not found with ids:" + missingIds);
-        }
-        for (CountryOptionModel model: countryOptionModels){
-            if (model.getDeletedAt() != null){
-                throw new IllegalStateException("Country Option with id:" + model.getId() + " is already deleted");
-            }
+        for (CountryOptionModel model : countryOptionModelList) {
             model.setDeletedAt(LocalDateTime.now());
         }
-        countryOptionRepository.saveAll(countryOptionModels);
-        return countryOptionModels;
+        return countryOptionRepository.saveAll(countryOptionModelList);
     }
 
     /**
-     * Hard deletes multiple Country Options by IDs
-     * @param ids List of Country Option IDs to hard delete
+     * Hard deletes multiple Country options by IDs.
+     *
+     * @param idList     - List of Country option IDs to hard delete
      */
     @Transactional
-    public void hardDeleteCountryOptions(List<Long> ids){
-        List<CountryOptionModel> countryOptionModels = countryOptionRepository.findAllById(ids);
+    public void hardDeleteMany(List<String> idList) {
+        countryOptionRepository.deleteAllById(idList);
+    }
 
-        List<Long> foundIds = new ArrayList<>();
-        for (CountryOptionModel model: countryOptionModels){
-            foundIds.add(model.getId());
-        }
-        List<Long> missingIds = new ArrayList<>();
-        for (Long id: ids){
-            if (!foundIds.contains(id)){
-                missingIds.add(id);
-            }
-        }
-        if (!missingIds.isEmpty()){
-            throw new CountryOptionNotFoundException("Country Option not found with ids:" + missingIds);
-        }
-        countryOptionRepository.deleteAllById(ids);
+    /**
+     * Hard deletes all Country options, including soft-deleted ones.
+     */
+    @Transactional
+    public void hardDeleteAll() {
+        countryOptionRepository.deleteAll();
     }
 }

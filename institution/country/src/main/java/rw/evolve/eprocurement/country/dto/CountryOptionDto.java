@@ -4,7 +4,6 @@
 package rw.evolve.eprocurement.country.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.persistence.MappedSuperclass;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
@@ -12,17 +11,14 @@ import lombok.Data;
 @Data
 public class CountryOptionDto {
 
-    /** Unique identifier for the Country option */
-    @JsonProperty("country_option_id")
-    private Long id;
+    @JsonProperty("id")
+    private String id;
 
-    /** name of Country option*/
     @JsonProperty("name")
     @NotNull(message = "name is mandatory")
     @Size(max = 255, message = "Name cannot exceed 150 characters")
     private String name;
 
-    /** description of the Country option*/
     @JsonProperty("description")
     @NotNull(message = "description is mandatory")
     @Size(max = 255, message = "Description cannot exceed 255 characters")

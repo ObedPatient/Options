@@ -1,6 +1,6 @@
 /**
- * REST API controller for managing Country options
- * Provides endpoints for creating, retrieving, deleting and updating Country option data.
+ * REST API controller for managing Country options.
+ * Handles CRUD operations for Country option data with soft and hard delete capabilities.
  */
 package rw.evolve.eprocurement.country.controller;
 
@@ -9,22 +9,23 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import rw.evolve.eprocurement.country.dto.CountryOptionDto;
-import rw.evolve.eprocurement.country.dto.ResponseMessageDto;
 import rw.evolve.eprocurement.country.model.CountryOptionModel;
 import rw.evolve.eprocurement.country.service.CountryOptionService;
+import rw.evolve.eprocurement.country.utils.CountryOptionIdGenerator;
+import rw.evolve.eprocurement.country.dto.ResponseMessageDto;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+
 
 @RestController
 @RequestMapping("api/country_option")
-@Tag(name = "Country Option Api")
+@Tag(name = "Country Option API")
 public class CountryOptionController {
 
     @Autowired
@@ -33,367 +34,275 @@ public class CountryOptionController {
     private final ModelMapper modelMapper = new ModelMapper();
 
     /**
-     * Converts a CountryOptionModel to CountryOptionDto.
-     * @param model The CountryOptionModel to convert.
-     * @return The converted CountryOptionDto.
+     * Converts CountryOptionModel to CountryOptionDto.
+     * @param model - CountryOptionModel to convert
+     * @return      - Converted CountryOptionDto
      */
-    private CountryOptionDto convertToDto(CountryOptionModel model){
+    private CountryOptionDto convertToDto(CountryOptionModel model) {
         return modelMapper.map(model, CountryOptionDto.class);
     }
 
     /**
-     * Converts a CountryOptionDto to CountryOptionModel.
-     * @param dto The CountryOptionDto to convert.
-     * @return The converted CountryOptionModel.
+     * Converts CountryOptionDto to CountryOptionModel.
+     * @param countryOptionDto - CountryOptionDto to convert
+     * @return                 - Converted CountryOptionModel
      */
-    private CountryOptionModel convertToModel(CountryOptionDto dto){
-        return modelMapper.map(dto, CountryOptionModel.class);
+    private CountryOptionModel convertToModel(CountryOptionDto countryOptionDto) {
+        return modelMapper.map(countryOptionDto, CountryOptionModel.class);
     }
 
     /**
-     * Creates a single Country Option
-     * @param countryOptionDto DTO containing Country Option data
-     * @return ResponseEntity containing a Map with the created CountryOptionDto and a ResponseMessageDto
+     * Creates a single Country option with a generated ID.
+     * @param countryOptionDto - Country option data
+     * @return                 - Response with success message
      */
-    @Operation(summary = "Create one Country Option Api endpoint")
+    @Operation(summary = "Create a single Country option")
     @PostMapping("/create/one")
-    public ResponseEntity<Map<String, Object>> createCountryOption(@Valid @RequestBody CountryOptionDto countryOptionDto){
+    public ResponseEntity<Object> save(@Valid @RequestBody CountryOptionDto countryOptionDto) {
         CountryOptionModel countryOptionModel = convertToModel(countryOptionDto);
-        CountryOptionModel createdCountryOptionModel = countryOptionService.createCountryOption(countryOptionModel);
-        CountryOptionDto createdCountryOptionDto = convertToDto(createdCountryOptionModel);
+        countryOptionModel.setId(CountryOptionIdGenerator.generateId());
+        countryOptionService.save(countryOptionModel);
         ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Country Option created successfully",
-                "OK",
-                201,
+                "Country option created successfully",
+                HttpStatus.OK.toString(),
                 LocalDateTime.now()
         );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Country Option", createdCountryOptionDto);
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(responseMessageDto, HttpStatus.OK);
     }
 
     /**
-     * Creates multiple Country Options
-     * @param countryOptionDtos List of Country Option DTOs
-     * @return ResponseEntity containing a Map with the created list of CountryOptionDto and a ResponseMessageDto
+     * Creates multiple Country options with generated IDs.
+     * @param countryOptionDtoList - List of Country option data
+     * @return                     - Response with success message
      */
-    @Operation(summary = "Create Many Country Option Api endpoint")
+    @Operation(summary = "Create multiple Country options")
     @PostMapping("/create/many")
-    public ResponseEntity<Map<String, Object>> createCountryOptions(@Valid @RequestBody List<CountryOptionDto> countryOptionDtos){
-        List<CountryOptionModel> countryOptionModels = new ArrayList<>();
-        for (CountryOptionDto dto: countryOptionDtos){
-            countryOptionModels.add(convertToModel(dto));
+    public ResponseEntity<Object> saveMany(@Valid @RequestBody List<CountryOptionDto> countryOptionDtoList) {
+        List<CountryOptionModel> countryOptionModelList = new ArrayList<>();
+        for (CountryOptionDto countryOptionDto : countryOptionDtoList) {
+            CountryOptionModel model = convertToModel(countryOptionDto);
+            model.setId(CountryOptionIdGenerator.generateId());
+            countryOptionModelList.add(model);
         }
-        List<CountryOptionModel> createdModels = countryOptionService.createCountryOptions(countryOptionModels);
-        List<CountryOptionDto> createdCountryDtos = new ArrayList<>();
-        for (CountryOptionModel model: createdModels){
-            createdCountryDtos.add(convertToDto(model));
-        }
-        ResponseMessageDto responseMessage = new ResponseMessageDto(
-                "Country Options Created Successfully",
-                "OK",
-                201,
+        countryOptionService.saveMany(countryOptionModelList);
+        ResponseMessageDto responseMessageDto = new ResponseMessageDto(
+                "Country options created successfully",
+                HttpStatus.OK.toString(),
                 LocalDateTime.now()
         );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Country Options", createdCountryDtos);
-        response.put("responseMessage", responseMessage);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(responseMessageDto, HttpStatus.OK);
     }
 
     /**
-     * Retrieves a Country Option by its ID, excluding soft-deleted options.
-     * @param id The ID of the Country Option to retrieve, provided as a request parameter.
-     * @return ResponseEntity containing a Map with the CountryOptionDto and a ResponseMessageDto
+     * Retrieves a Country option by ID (excludes soft-deleted).
+     * @param id - Country option ID
+     * @return   - Response with Country option data
      */
-    @Operation(summary = "Get One Country Option API")
-    @GetMapping("/read/one/{id}")
-    public ResponseEntity<Map<String, Object>> readOne(@RequestParam("CountryOptionId") Long id){
+    @Operation(summary = "Get a single Country option by ID")
+    @GetMapping("/read/one")
+    public ResponseEntity<Object> readOne(@RequestParam("id") String id) {
         CountryOptionModel model = countryOptionService.readOne(id);
-        CountryOptionDto dto = convertToDto(model);
-        ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Country Option Retrieved Successfully",
-                "OK",
-                200,
-                LocalDateTime.now()
-        );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Country Option", dto);
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+        CountryOptionDto countryOptionDto = convertToDto(model);
+        return new ResponseEntity<>(countryOptionDto, HttpStatus.OK);
     }
 
     /**
-     * Retrieves all non-deleted Country Options.
-     * @return ResponseEntity containing a Map with a list of CountryOptionDto and a ResponseMessageDto
+     * Retrieves all non-deleted Country options.
+     * @return  - Response with list of Country option data
      */
-    @Operation(summary = "Read all Country Option Api endpoint")
+    @Operation(summary = "Get all available Country options")
     @GetMapping("/read/all")
-    public ResponseEntity<Map<String, Object>> readAll(){
-        List<CountryOptionModel> countryOptionModels = countryOptionService.readAll();
-        List<CountryOptionDto> countryOptionDtos = new ArrayList<>();
-        for (CountryOptionModel countryOptionModel: countryOptionModels){
-            countryOptionDtos.add(convertToDto(countryOptionModel));
+    public ResponseEntity<Object> readAll() {
+        List<CountryOptionModel> countryOptionModelList = countryOptionService.readAll();
+        List<CountryOptionDto> countryOptionDtoList = new ArrayList<>();
+        for (CountryOptionModel countryOptionModel : countryOptionModelList) {
+            countryOptionDtoList.add(convertToDto(countryOptionModel));
         }
-        ResponseMessageDto responseMessage = new ResponseMessageDto(
-                "Country Options Retrieved Successfully",
-                "OK",
-                200,
-                LocalDateTime.now()
-        );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Country Options", countryOptionDtos);
-        response.put("responseMessage", responseMessage);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(countryOptionDtoList, HttpStatus.OK);
     }
 
     /**
-     * Retrieves all Country Options, including soft-deleted ones.
-     * @return ResponseEntity containing a Map with a list of CountryOptionDto and a ResponseMessageDto
+     * Retrieves all Country options, including soft-deleted.
+     * @return  - Response with list of all Country option data
      */
-    @Operation(summary = "Hard read all Country Option Api endpoint")
+    @Operation(summary = "Get all Country options, including soft-deleted")
     @GetMapping("/read/hard/all")
-    public ResponseEntity<Map<String, Object>> hardReadAll(){
-        List<CountryOptionModel> models = countryOptionService.hardReadAll();
-        List<CountryOptionDto> dtos = new ArrayList<>();
-        for (CountryOptionModel model: models){
-            dtos.add(convertToDto(model));
+    public ResponseEntity<Object> hardReadAll() {
+        List<CountryOptionModel> modelList = countryOptionService.hardReadAll();
+        List<CountryOptionDto> countryOptionDtoList = new ArrayList<>();
+        for (CountryOptionModel model : modelList) {
+            countryOptionDtoList.add(convertToDto(model));
         }
-        ResponseMessageDto responseMessage = new ResponseMessageDto(
-                "All Country Options Retrieved Successfully",
-                "OK",
-                200,
-                LocalDateTime.now()
-        );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Country Options", dtos);
-        response.put("responseMessage", responseMessage);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(countryOptionDtoList, HttpStatus.OK);
     }
 
     /**
-     * Retrieves multiple Country Options by their IDs, excluding soft-deleted records.
-     * @param ids List of Country Option IDs
-     * @return ResponseEntity containing a Map with a list of CountryOptionDto and a ResponseMessageDto
+     * Retrieves multiple Country options by ID (excludes soft-deleted).
+     * @param idList - List of Country option IDs
+     * @return       - Response with list of Country option data
      */
-    @Operation(summary = "Retrieve multiple Country Options with their Ids Api")
-    @PostMapping("read/many")
-    public ResponseEntity<Map<String, Object>> readMany(@Valid @RequestBody List<Long> ids){
-        List<CountryOptionModel> countryOptionModels = countryOptionService.readMany(ids);
-        List<CountryOptionDto> countryOptionDtos = new ArrayList<>();
-        for (CountryOptionModel model: countryOptionModels){
-            countryOptionDtos.add(convertToDto(model));
+    @Operation(summary = "Get multiple Country options by ID")
+    @PostMapping("/read/many")
+    public ResponseEntity<Object> readMany(@Valid @RequestParam("id_list") List<String> idList) {
+        List<CountryOptionModel> countryOptionModelList = countryOptionService.readMany(idList);
+        List<CountryOptionDto> countryOptionDtoList = new ArrayList<>();
+        for (CountryOptionModel model : countryOptionModelList) {
+            countryOptionDtoList.add(convertToDto(model));
         }
-        ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Country Options Retrieved Successfully",
-                "OK",
-                200,
-                LocalDateTime.now()
-        );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Country Options", countryOptionDtos);
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(countryOptionDtoList, HttpStatus.OK);
     }
 
     /**
-     * Updates a Country Option by its ID, excluding soft-deleted records.
-     * @param id The ID of the Country Option to update
-     * @param countryOptionDto The updated Country Option data
-     * @return ResponseEntity containing a Map with the updated CountryOptionDto and a ResponseMessageDto
+     * Updates a Country option by ID (excludes soft-deleted).
+     * @param countryOptionDto - Updated Country option data
+     * @return                 - Response with updated Country option data
      */
-    @Operation(summary = "Update One Country Option Api")
-    @PutMapping("/update/one/{id}")
-    public ResponseEntity<Map<String, Object>> updateOne(@Valid @RequestParam Long id,
-                                                         @Valid @RequestBody CountryOptionDto countryOptionDto){
-        CountryOptionModel countryOptionModel = countryOptionService.updateOne(id, convertToModel(countryOptionDto));
-        CountryOptionDto dto = convertToDto(countryOptionModel);
-        ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Country Option Updated Successfully",
-                "OK",
-                200,
-                LocalDateTime.now()
-        );
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("Country Option", dto);
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+    @Operation(summary = "Update a single Country option by ID")
+    @PutMapping("/update/one")
+    public ResponseEntity<Object> updateOne(@Valid @RequestBody CountryOptionDto countryOptionDto) {
+        String modelId = countryOptionDto.getId();
+        CountryOptionModel savedModel = countryOptionService.readOne(modelId);
+        savedModel.setName(countryOptionDto.getName());
+        savedModel.setDescription(countryOptionDto.getDescription());
+        countryOptionService.updateOne(savedModel);
+        CountryOptionDto updatedDto = convertToDto(savedModel);
+        return new ResponseEntity<>(updatedDto, HttpStatus.OK);
     }
 
     /**
-     * Updates multiple Country Options based on the provided list of Country Option DTOs.
-     * Excludes soft-deleted records from updates.
-     *
-     * @param countryOptionDtos List of CountryOptionDto objects containing updated data
-     * @return ResponseEntity containing a Map with the list of updated CountryOptionDtos and ResponseMessageDto
+     * Updates multiple Country options (excludes soft-deleted).
+     * @param countryOptionDtoList - List of updated Country option data
+     * @return                     - Response with list of updated Country option data
      */
-    @Operation(summary = "Update multiple Country Options Api endpoint")
+    @Operation(summary = "Update multiple Country options")
     @PutMapping("/update/many")
-    public ResponseEntity<Map<String, Object>> updateMany(@Valid @RequestBody List<CountryOptionDto> countryOptionDtos){
-        List<CountryOptionModel> inputModels = new ArrayList<>();
-        for (CountryOptionDto dto: countryOptionDtos){
-            inputModels.add(convertToModel(dto));
+    public ResponseEntity<Object> updateMany(@Valid @RequestBody List<CountryOptionDto> countryOptionDtoList) {
+        List<CountryOptionModel> inputModelList = new ArrayList<>();
+        for (CountryOptionDto countryOptionDto : countryOptionDtoList) {
+            inputModelList.add(convertToModel(countryOptionDto));
         }
-        List<CountryOptionModel> updatedModels = countryOptionService.updateMany(inputModels);
-        List<CountryOptionDto> dtos = new ArrayList<>();
-        for (CountryOptionModel model: updatedModels){
-            dtos.add(convertToDto(model));
+        List<CountryOptionModel> updatedModelList = countryOptionService.updateMany(inputModelList);
+        List<CountryOptionDto> updatedDtoList = new ArrayList<>();
+        for (CountryOptionModel model : updatedModelList) {
+            updatedDtoList.add(convertToDto(model));
         }
-        ResponseMessageDto responseMessage = new ResponseMessageDto(
-                "Country Options Updated Successfully",
-                "OK",
-                200,
-                LocalDateTime.now()
-        );
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("Country Options", dtos);
-        response.put("responseMessage", responseMessage);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(updatedDtoList, HttpStatus.OK);
     }
 
     /**
-     * Updates a Country Option by its ID, including soft-deleted records.
-     *
-     * @param id The ID of the Country Option to update.
-     * @param countryOptionDto The updated Country Option data.
-     * @return ResponseEntity containing a Map with the updated CountryOptionDto and ResponseMessageDto
+     * Updates a Country option by ID, including soft-deleted.
+     * @param countryOptionDto - Updated Country option data
+     * @return                 - Response with updated Country option data
      */
-    @Operation(summary = "Hard update Country Option by Id Api endpoint")
-    @PutMapping("/update/hard/one/{id}")
-    public ResponseEntity<Map<String, Object>> hardUpdate(@RequestParam Long id, @Valid @RequestBody CountryOptionDto countryOptionDto){
-        CountryOptionModel countryOptionModel = countryOptionService.hardUpdateOne(id, convertToModel(countryOptionDto));
-        CountryOptionDto dto = convertToDto(countryOptionModel);
-        ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Country Option Updated Successfully",
-                "OK",
-                200,
-                LocalDateTime.now()
-        );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Country Option", dto);
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+    @Operation(summary = "Update a single Country option by ID, including soft-deleted")
+    @PutMapping("/update/hard/one")
+    public ResponseEntity<Object> hardUpdate(@Valid @RequestBody CountryOptionDto countryOptionDto) {
+        CountryOptionModel countryOptionModel = countryOptionService.hardUpdate(convertToModel(countryOptionDto));
+        CountryOptionDto updatedDto = convertToDto(countryOptionModel);
+        return new ResponseEntity<>(updatedDto, HttpStatus.OK);
     }
 
     /**
-     * Updates all Country Options, including soft-deleted records, based on their IDs.
-     *
-     * @param countryOptionDtos The list of updated Country Option data.
-     * @return ResponseEntity containing a Map with the list of updated CountryOptionDtos and ResponseMessageDto
+     * Updates all Country options, including soft-deleted.
+     * @param countryOptionDtoList - List of updated Country option data
+     * @return                     - Response with list of updated Country option data
      */
-    @Operation(summary = "Hard update all Country Options")
+    @Operation(summary = "Update all Country options, including soft-deleted")
     @PutMapping("/update/hard/all")
-    public ResponseEntity<Map<String, Object>> hardUpdateAll(@Valid @RequestBody List<CountryOptionDto> countryOptionDtos){
-        List<CountryOptionModel> inputModels = new ArrayList<>();
-        for (CountryOptionDto dto: countryOptionDtos){
-            inputModels.add(convertToModel(dto));
+    public ResponseEntity<Object> hardUpdateAll(@Valid @RequestBody List<CountryOptionDto> countryOptionDtoList) {
+        List<CountryOptionModel> inputModelList = new ArrayList<>();
+        for (CountryOptionDto countryOptionDto : countryOptionDtoList) {
+            inputModelList.add(convertToModel(countryOptionDto));
         }
-        List<CountryOptionModel> updatedModels = countryOptionService.hardUpdateAll(inputModels);
-        List<CountryOptionDto> dtos = new ArrayList<>();
-        for (CountryOptionModel countryOptionModel: updatedModels){
-            dtos.add(convertToDto(countryOptionModel));
+        List<CountryOptionModel> updatedModelList = countryOptionService.hardUpdateAll(inputModelList);
+        List<CountryOptionDto> updatedDtoList = new ArrayList<>();
+        for (CountryOptionModel model : updatedModelList) {
+            updatedDtoList.add(convertToDto(model));
         }
-        ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Country Options Hard updated successfully",
-                "OK",
-                200,
-                LocalDateTime.now()
-        );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Country Options", dtos);
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(updatedDtoList, HttpStatus.OK);
     }
 
     /**
-     * Soft deletes a single Country Option by ID
-     * @param id ID of the Country Option to softly delete
-     * @return ResponseEntity containing a Map with the soft deleted CountryOptionDto and ResponseMessageDto
+     * Soft deletes a Country option by ID.
+     * @param id - Country option ID
+     * @return   - Response with success message
      */
-    @Operation(summary = "Soft delete a single Country Option")
-    @PutMapping("/soft/delete/one/{id}")
-    public ResponseEntity<Map<String, Object>> softDeleteCountryOption(@RequestParam Long id){
-        CountryOptionModel deletedCountryOptionModel = countryOptionService.softDeleteCountryOption(id);
-        CountryOptionDto deletedCountryOptionDto = convertToDto(deletedCountryOptionModel);
+    @Operation(summary = "Soft delete a single Country option by ID")
+    @PutMapping("/soft/delete/one")
+    public ResponseEntity<Object> softDelete(@RequestParam String id) {
+        CountryOptionModel deletedModel = countryOptionService.softDelete(id);
         ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Country Option Soft Deleted successfully",
-                "OK",
-                200,
+                "Country option soft deleted successfully",
+                HttpStatus.OK.toString(),
                 LocalDateTime.now()
         );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Country Option", deletedCountryOptionDto);
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(responseMessageDto, HttpStatus.OK);
     }
 
     /**
-     * Hard deletes a single Country Option by ID
-     * @param id ID of the Country Option to hard delete
-     * @return ResponseEntity containing a Map with ResponseMessageDto
+     * Hard deletes a Country option by ID.
+     * @param id - Country option ID
+     * @return   - Response with success message
      */
-    @Operation(summary = "Hard delete a single Country Option Api endpoint")
+    @Operation(summary = "Hard delete a single Country option by ID")
     @GetMapping("/hard/delete/{id}")
-    public ResponseEntity<Map<String, Object>> hardDeleteCountryOption(@RequestParam Long id){
-        countryOptionService.hardDeleteCountryOption(id);
+    public ResponseEntity<Object> hardDelete(@RequestParam String id) {
+        countryOptionService.hardDelete(id);
         ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Country Option Hard Deleted Successfully",
-                "OK",
-                204,
+                "Country option hard deleted successfully",
+                HttpStatus.OK.toString(),
                 LocalDateTime.now()
         );
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(responseMessageDto, HttpStatus.OK);
     }
 
     /**
-     * Soft deletes multiple Country Options by IDs
-     * @param ids List of Country Option IDs to softly delete
-     * @return ResponseEntity containing a Map with the list of soft deleted CountryOptionDto and ResponseMessageDto
+     * Soft deletes multiple Country options by ID.
+     * @param idList - List of Country option IDs
+     * @return       - Response with success message
      */
-    @Operation(summary = "Soft delete multiple Country Options")
+    @Operation(summary = "Soft delete multiple Country options by ID")
     @PutMapping("/soft/delete/many")
-    public ResponseEntity<Map<String, Object>> softDeleteCountryOptions(@RequestBody List<Long> ids){
-        List<CountryOptionModel> deletedCountryOptionModels = countryOptionService.softDeleteCountryOptions(ids);
-        List<CountryOptionDto> deletedCountryOptionDtos = new ArrayList<>();
-        for (CountryOptionModel model: deletedCountryOptionModels){
-            deletedCountryOptionDtos.add(convertToDto(model));
-        }
+    public ResponseEntity<Object> softDeleteMany(@Valid @RequestParam("idList") List<String> idList) {
+        List<CountryOptionModel> deletedModelList = countryOptionService.softDeleteMany(idList);
         ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Country Options Soft Deleted Successfully",
-                "OK",
-                200,
+                "Country options soft deleted successfully",
+                HttpStatus.OK.toString(),
                 LocalDateTime.now()
         );
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("Country Options", deletedCountryOptionDtos);
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(responseMessageDto, HttpStatus.OK);
     }
 
     /**
-     * Hard deletes multiple Country Options by IDs
-     * @param ids List of Country Option IDs to hard delete
-     * @return ResponseEntity containing a Map with ResponseMessageDto
+     * Hard deletes multiple Country options by ID.
+     * @param idList - List of Country option IDs
+     * @return       - Response with success message
      */
-    @Operation(summary = "Hard delete multiple Country Options")
+    @Operation(summary = "Hard delete multiple Country options by ID")
     @GetMapping("/hard/delete/many")
-    public ResponseEntity<Map<String, Object>> hardDeleteCountryOptions(@RequestBody List<Long> ids){
-        countryOptionService.hardDeleteCountryOptions(ids);
+    public ResponseEntity<Object> hardDeleteMany(@Valid @RequestParam("idList") List<String> idList) {
+        countryOptionService.hardDeleteMany(idList);
         ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Country Options Hard Deleted Successfully",
-                "OK",
-                204,
+                "Country options hard deleted successfully",
+                HttpStatus.OK.toString(),
                 LocalDateTime.now()
         );
-        Map<String, Object> response = new HashMap<>();
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(responseMessageDto, HttpStatus.OK);
+    }
+
+    /**
+     * Hard deletes all Country options, including soft-deleted.
+     * @return - Response with success message
+     */
+    @Operation(summary = "Hard delete all Country options")
+    @GetMapping("/hard/delete/all")
+    public ResponseEntity<Object> hardDeleteAll() {
+        countryOptionService.hardDeleteAll();
+        ResponseMessageDto responseMessageDto = new ResponseMessageDto(
+                "All Country options hard deleted successfully",
+                HttpStatus.OK.toString(),
+                LocalDateTime.now()
+        );
+        return new ResponseEntity<>(responseMessageDto, HttpStatus.OK);
     }
 }
