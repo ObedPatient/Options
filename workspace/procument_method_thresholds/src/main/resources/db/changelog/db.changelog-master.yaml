@@ -1,0 +1,32 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: evolve
+      changes:
+        - createTable:
+            tableName: procurement_method_threshold_option
+            columns:
+              - column:
+                  name: id
+                  type: varchar(255)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
+                  type: text
+              - column:
+                  name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
