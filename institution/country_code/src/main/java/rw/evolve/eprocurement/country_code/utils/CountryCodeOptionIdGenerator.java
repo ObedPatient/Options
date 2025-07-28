@@ -1,0 +1,22 @@
+/**
+ * Utility class for generating unique identifier for scheme options in the e-procurement system.
+ * The generated ID follow a specific format combining a timestamp and a random number.
+ */
+package rw.evolve.eprocurement.country_code.utils;
+
+import java.util.Random;
+
+public class CountryCodeOptionIdGenerator {
+    /**
+     * Generates a unique identifier for a Country code option.
+     * The ID         - is formatted as "COUNTRY_CODE_OPT_{timestamp}_{randomNumber}", where the timestamp     *
+     * @return        - A unique Country code option ID as a String.
+     */
+    public static String generateId() {
+        return String.format(
+                "COUNTRY_CODE_OPT_%s_%s",
+                DateTimeUtil.getTimeStamp().replaceAll("[^a-zA-Z0-9]", ""),
+                (new Random()).nextLong(1, 10_000_000)
+        );
+    }
+}
