@@ -10,8 +10,7 @@
               columns:
                 - column:
                     name: plan_status_option_id
-                    type: bigint
-                    autoIncrement: true
+                    type: varchar(255)
                     constraints:
                       primaryKey: true
                       nullable: false

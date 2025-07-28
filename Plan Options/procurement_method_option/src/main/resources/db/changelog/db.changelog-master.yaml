@@ -9,8 +9,7 @@ databaseChangeLog:
             columns:
               - column:
                   name: procurement_method_option_id
-                  type: bigint
-                  autoIncrement: true
+                  type: varchar(255)
                   constraints:
                     primaryKey: true
                     nullable: false

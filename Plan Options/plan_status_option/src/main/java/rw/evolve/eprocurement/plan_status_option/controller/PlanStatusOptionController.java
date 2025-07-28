@@ -1,6 +1,6 @@
 /**
- * REST API controller for managing Plan status options
- * Provides endpoints for creating, retrieving, deleting and updating Plan status option data.
+ * REST API controller for managing Plan status options.
+ * Handles CRUD operations for Plan Status Option data with soft and hard delete capabilities.
  */
 package rw.evolve.eprocurement.plan_status_option.controller;
 
@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import rw.evolve.eprocurement.plan_status_option.dto.PlanStatusOptionDto;
@@ -18,382 +19,285 @@ import rw.evolve.eprocurement.plan_status_option.service.PlanStatusOptionService
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("api/plan_status_option")
-@Tag(name = "Plan Status Option Api")
+@Tag(name = "Plan Status Option API")
 public class PlanStatusOptionController {
-
-    private final ModelMapper modelMapper = new ModelMapper();
 
     @Autowired
     private PlanStatusOptionService planStatusOptionService;
 
+    private final ModelMapper modelMapper = new ModelMapper();
+
     /**
-     * Converts a PlanStatusOptionModel to PlanStatusOptionDto.
-     * @param model The PlanStatusOptionModel to convert.
-     * @return The converted PlanStatusOptionDto.
+     * Converts PlanStatusOptionModel to PlanStatusOptionDto.
+     * @param model - PlanStatusOptionModel to convert
+     * @return      - Converted PlanStatusOptionDto
      */
-    private PlanStatusOptionDto convertToDto(PlanStatusOptionModel model){
+    private PlanStatusOptionDto convertToDto(PlanStatusOptionModel model) {
         return modelMapper.map(model, PlanStatusOptionDto.class);
     }
 
     /**
-     * Converts a PlanStatusOptionDto to PlanStatusOptionModel.
-     * @param dto The PlanStatusOptionDto to convert.
-     * @return The converted PlanStatusOptionModel.
+     * Converts PlanStatusOptionDto to PlanStatusOptionModel.
+     * @param planStatusOptionDto - PlanStatusOptionDto to convert
+     * @return                    - Converted PlanStatusOptionModel
      */
-    private PlanStatusOptionModel convertToModel(PlanStatusOptionDto dto){
-        return modelMapper.map(dto, PlanStatusOptionModel.class);
+    private PlanStatusOptionModel convertToModel(PlanStatusOptionDto planStatusOptionDto) {
+        return modelMapper.map(planStatusOptionDto, PlanStatusOptionModel.class);
     }
 
     /**
-     * Creates a single Plan Status Option
-     * @param planStatusOptionDto DTO containing Plan Status Option data
-     * @return ResponseEntity containing a Map with the created PlanStatusOptionDto and a ResponseMessageDto
+     * Creates a single Plan Status Option.
+     * @param planStatusOptionDto - Plan Status Option data
+     * @return                    - Response with success message
      */
-    @Operation(summary = "Create one Plan Status Option Api endpoint")
+    @Operation(summary = "Create a single Plan Status Option")
     @PostMapping("/create/one")
-    public ResponseEntity<Map<String, Object>> createPlanStatusOption(@Valid @RequestBody PlanStatusOptionDto planStatusOptionDto){
+    public ResponseEntity<Object> save(@Valid @RequestBody PlanStatusOptionDto planStatusOptionDto) {
         PlanStatusOptionModel planStatusOptionModel = convertToModel(planStatusOptionDto);
-        PlanStatusOptionModel createdPlanStatusOptionModel = planStatusOptionService.createPlanStatusOption(planStatusOptionModel);
-        PlanStatusOptionDto createdPlanStatusOptionDto = convertToDto(createdPlanStatusOptionModel);
+        planStatusOptionService.save(planStatusOptionModel);
         ResponseMessageDto responseMessageDto = new ResponseMessageDto(
                 "Plan Status Option created successfully",
-                "OK",
-                201,
+                HttpStatus.OK.toString(),
                 LocalDateTime.now()
         );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Plan Status Options", createdPlanStatusOptionDto);
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(responseMessageDto, HttpStatus.OK);
     }
 
     /**
-     * Creates multiple Plan Status Options
-     * @param planStatusOptionDtos List of Plan Status Option DTOs
-     * @return ResponseEntity containing a Map with the created list of PlanStatusOptionDto and a ResponseMessageDto
+     * Creates multiple Plan Status Options.
+     * @param planStatusOptionDtoList - List of Plan Status Option data
+     * @return                        - Response with success message
      */
-    @Operation(summary = "Create Many Plan Status Option Api endpoint")
+    @Operation(summary = "Create multiple Plan Status Options")
     @PostMapping("/create/many")
-    public ResponseEntity<Map<String, Object>> createPlanStatusOptions(@Valid @RequestBody List<PlanStatusOptionDto> planStatusOptionDtos ){
-        List<PlanStatusOptionModel> planStatusOptionModels = new ArrayList<>();
-        for (PlanStatusOptionDto dto: planStatusOptionDtos){
-            planStatusOptionModels.add(convertToModel(dto));
+    public ResponseEntity<Object> saveMany(@Valid @RequestBody List<PlanStatusOptionDto> planStatusOptionDtoList) {
+        List<PlanStatusOptionModel> planStatusOptionModelList = new ArrayList<>();
+        for (PlanStatusOptionDto planStatusOptionDto : planStatusOptionDtoList) {
+            planStatusOptionModelList.add(convertToModel(planStatusOptionDto));
         }
-        List<PlanStatusOptionModel> createdModels = planStatusOptionService.createPlanStatusOptions(planStatusOptionModels);
-        List<PlanStatusOptionDto> createdPlanStatusDtos = new ArrayList<>();
-        for (PlanStatusOptionModel model: createdModels){
-            createdPlanStatusDtos.add(convertToDto(model));
-        }
-        ResponseMessageDto responseMessage = new ResponseMessageDto(
-                "Plan Status Options Created Successfully",
-                "OK",
-                201,
+        planStatusOptionService.saveMany(planStatusOptionModelList);
+        ResponseMessageDto responseMessageDto = new ResponseMessageDto(
+                "Plan Status Options created successfully",
+                HttpStatus.OK.toString(),
                 LocalDateTime.now()
         );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Plan Status Options", createdPlanStatusDtos);
-        response.put("responseMessage", responseMessage);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(responseMessageDto, HttpStatus.OK);
     }
 
     /**
-     * Retrieves a Plan Status Option by its ID, excluding soft-deleted options.
-     * @param id The ID of the Plan Status Option to retrieve, provided as a request parameter.
-     * @return ResponseEntity containing a Map with the PlanStatusOptionDto and a ResponseMessageDto
+     * Retrieves a Plan Status Option by ID (excludes soft-deleted).
+     * @param id - Plan Status Option ID
+     * @return   - Response with Plan Status Option data
      */
-    @Operation(summary = "Get One Plan Status Option API")
-    @GetMapping("/read/one/{id}")
-    public ResponseEntity<Map<String, Object>> readOne(@RequestParam("PlanStatusOptionId") Long id){
+    @Operation(summary = "Get a single Plan Status Option by ID")
+    @GetMapping("/read/one")
+    public ResponseEntity<Object> readOne(@RequestParam("id") String id) {
         PlanStatusOptionModel model = planStatusOptionService.readOne(id);
-        PlanStatusOptionDto dto = convertToDto(model);
-        ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Plan Status Option Retrieved Successfully",
-                "OK",
-                200,
-                LocalDateTime.now()
-        );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Plan Status Option", dto);
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+        PlanStatusOptionDto planStatusOptionDto = convertToDto(model);
+        return new ResponseEntity<>(planStatusOptionDto, HttpStatus.OK);
     }
 
     /**
      * Retrieves all non-deleted Plan Status Options.
-     * @return ResponseEntity containing a Map with a list of PlanStatusOptionDto and a ResponseMessageDto
+     * @return - Response with list of Plan Status Option data
      */
-    @Operation(summary = "Read all Plan Status Option Api endpoint")
+    @Operation(summary = "Get all available Plan Status Options")
     @GetMapping("/read/all")
-    public ResponseEntity<Map<String, Object>> readAll(){
-        List<PlanStatusOptionModel> planStatusOptionModels = planStatusOptionService.readAll();
-        List<PlanStatusOptionDto> planStatusOptionDtos = new ArrayList<>();
-        for (PlanStatusOptionModel planStatusOptionModel: planStatusOptionModels){
-            planStatusOptionDtos.add(convertToDto(planStatusOptionModel));
+    public ResponseEntity<Object> readAll() {
+        List<PlanStatusOptionModel> planStatusOptionModelList = planStatusOptionService.readAll();
+        List<PlanStatusOptionDto> planStatusOptionDtoList = new ArrayList<>();
+        for (PlanStatusOptionModel planStatusOptionModel : planStatusOptionModelList) {
+            planStatusOptionDtoList.add(convertToDto(planStatusOptionModel));
         }
-        ResponseMessageDto responseMessage = new ResponseMessageDto(
-                "Plan Status Options Retrieved Successfully",
-                "OK",
-                200,
-                LocalDateTime.now()
-        );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Plan Status Options", planStatusOptionDtos);
-        response.put("responseMessage", responseMessage);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(planStatusOptionDtoList, HttpStatus.OK);
     }
 
     /**
-     * Retrieves all Plan Status Options, including soft-deleted ones.
-     * @return ResponseEntity containing a Map with a list of PlanStatusOptionDto and a ResponseMessageDto
+     * Retrieves all Plan Status Options, including soft-deleted.
+     * @return - Response with list of all Plan Status Option data
      */
-    @Operation(summary = "Hard read all Plan Status Option Api endpoint")
+    @Operation(summary = "Get all Plan Status Options, including soft-deleted")
     @GetMapping("/read/hard/all")
-    public ResponseEntity<Map<String, Object>> hardReadAll(){
-        List<PlanStatusOptionModel> models = planStatusOptionService.hardReadAll();
-        List<PlanStatusOptionDto> dtos = new ArrayList<>();
-        for (PlanStatusOptionModel model: models){
-            dtos.add(convertToDto(model));
+    public ResponseEntity<Object> hardReadAll() {
+        List<PlanStatusOptionModel> modelList = planStatusOptionService.hardReadAll();
+        List<PlanStatusOptionDto> planStatusOptionDtoList = new ArrayList<>();
+        for (PlanStatusOptionModel model : modelList) {
+            planStatusOptionDtoList.add(convertToDto(model));
         }
-        ResponseMessageDto responseMessage = new ResponseMessageDto(
-                "All Plan Status Options Retrieved Successfully",
-                "OK",
-                200,
-                LocalDateTime.now()
-        );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Plan Status Options", dtos);
-        response.put("responseMessage", responseMessage);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(planStatusOptionDtoList, HttpStatus.OK);
     }
 
     /**
-     * Retrieves multiple Plan Status Options by their IDs, excluding soft-deleted records.
-     * @param ids List of Plan Status Option IDs
-     * @return ResponseEntity containing a Map with a list of PlanStatusOptionDto and a ResponseMessageDto
+     * Retrieves multiple Plan Status Options by ID (excludes soft-deleted).
+     * @param idList - List of Plan Status Option ID
+     * @return       - Response with list of Plan Status Option data
      */
-    @Operation(summary = "Retrieve multiple Plan Status Options with their Ids Api")
-    @PostMapping("read/many")
-    public ResponseEntity<Map<String, Object>> readMany(@Valid @RequestBody List<Long> ids){
-        List<PlanStatusOptionModel> planStatusOptionModels = planStatusOptionService.readMany(ids);
-        List<PlanStatusOptionDto> planStatusOptionDtos = new ArrayList<>();
-        for (PlanStatusOptionModel model: planStatusOptionModels){
-            planStatusOptionDtos.add(convertToDto(model));
+    @Operation(summary = "Get multiple Plan Status Options by ID")
+    @PostMapping("/read/many")
+    public ResponseEntity<Object> readMany(@Valid @RequestParam("id_list") List<String> idList) {
+        List<PlanStatusOptionModel> planStatusOptionModelList = planStatusOptionService.readMany(idList);
+        List<PlanStatusOptionDto> planStatusOptionDtoList = new ArrayList<>();
+        for (PlanStatusOptionModel model : planStatusOptionModelList) {
+            planStatusOptionDtoList.add(convertToDto(model));
         }
-        ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Plan Status Options Retrieved Successfully",
-                "OK",
-                200,
-                LocalDateTime.now()
-        );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Plan Status Options", planStatusOptionDtos);
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(planStatusOptionDtoList, HttpStatus.OK);
     }
 
     /**
-     * Updates a Plan Status Option by its ID, excluding soft-deleted records.
-     * @param id The ID of the Plan Status Option to update
-     * @param planStatusOptionDto The updated Plan Status Option data
-     * @return ResponseEntity containing a Map with the updated PlanStatusOptionDto and a ResponseMessageDto
+     * Updates a Plan Status Option by ID (excludes soft-deleted).
+     * @param planStatusOptionDto - Updated Plan Status Option data
+     * @return                    - Response with updated Plan Status Option data
      */
-    @Operation(summary = "Update One Plan Status Option Api")
-    @PutMapping("/update/one/{id}")
-    public ResponseEntity<Map<String, Object>> updateOne(@Valid @RequestParam Long id,
-                                                         @Valid @RequestBody PlanStatusOptionDto planStatusOptionDto){
-        PlanStatusOptionModel planStatusOptionModel = planStatusOptionService.updateOne(id, convertToModel(planStatusOptionDto));
-        PlanStatusOptionDto dto = convertToDto(planStatusOptionModel);
-        ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Plan Status Option Updated Successfully",
-                "OK",
-                200,
-                LocalDateTime.now()
-        );
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("Plan Status Option", dto);
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+    @Operation(summary = "Update a single Plan Status Option by ID")
+    @PutMapping("/update/one")
+    public ResponseEntity<Object> updateOne(@Valid @RequestBody PlanStatusOptionDto planStatusOptionDto) {
+        String modelId = planStatusOptionDto.getId();
+        PlanStatusOptionModel savedModel = planStatusOptionService.readOne(modelId);
+        savedModel.setName(planStatusOptionDto.getName());
+        savedModel.setDescription(planStatusOptionDto.getDescription());
+        planStatusOptionService.updateOne(savedModel);
+        PlanStatusOptionDto updatedDto = convertToDto(savedModel);
+        return new ResponseEntity<>(updatedDto, HttpStatus.OK);
     }
 
     /**
-     * Updates multiple Plan Status Options based on the provided list of Plan Status Option DTOs.
-     * Excludes soft-deleted records from updates.
-     *
-     * @param planStatusOptionDtos List of PlanStatusOptionDto objects containing updated Plan Status Option data
-     * @return ResponseEntity containing a Map with the list of updated PlanStatusOptionDtos and ResponseMessageDto
+     * Updates multiple Plan Status Options (excludes soft-deleted).
+     * @param planStatusOptionDtoList - List of updated Plan Status Option data
+     * @return                        - Response with list of updated Plan Status Option data
      */
-    @Operation(summary = "Update multiple Plan Status Options Api endpoint")
+    @Operation(summary = "Update multiple Plan Status Options")
     @PutMapping("/update/many")
-    public ResponseEntity<Map<String, Object>> updateMany(@Valid @RequestBody List<PlanStatusOptionDto> planStatusOptionDtos){
-        List<PlanStatusOptionModel> inputModels = new ArrayList<>();
-        for (PlanStatusOptionDto dto: planStatusOptionDtos){
-            inputModels.add(convertToModel(dto));
+    public ResponseEntity<Object> updateMany(@Valid @RequestBody List<PlanStatusOptionDto> planStatusOptionDtoList) {
+        List<PlanStatusOptionModel> inputModelList = new ArrayList<>();
+        for (PlanStatusOptionDto planStatusOptionDto : planStatusOptionDtoList) {
+            inputModelList.add(convertToModel(planStatusOptionDto));
         }
-        List<PlanStatusOptionModel> updatedModels = planStatusOptionService.updateMany(inputModels);
-        List<PlanStatusOptionDto> dtos = new ArrayList<>();
-        for (PlanStatusOptionModel model: updatedModels){
-            dtos.add(convertToDto(model));
+        List<PlanStatusOptionModel> updatedModelList = planStatusOptionService.updateMany(inputModelList);
+        List<PlanStatusOptionDto> updatedDtoList = new ArrayList<>();
+        for (PlanStatusOptionModel model : updatedModelList) {
+            updatedDtoList.add(convertToDto(model));
         }
-        ResponseMessageDto responseMessage = new ResponseMessageDto(
-                "Plan Status Options Updated Successfully",
-                "OK",
-                200,
-                LocalDateTime.now()
-        );
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("Plan Status Options", dtos);
-        response.put("responseMessage", responseMessage);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(updatedDtoList, HttpStatus.OK);
     }
 
     /**
-     * Updates a Plan Status Option by its ID, including soft-deleted records.
-     *
-     * @param id The ID of the Plan Status Option to update.
-     * @param planStatusOptionDto The updated Plan Status Option data.
-     * @return ResponseEntity containing a Map with the updated PlanStatusOptionDto and ResponseMessageDto
+     * Updates a Plan Status Option by ID, including soft-deleted.
+     * @param planStatusOptionDto - Updated Plan Status Option data
+     * @return                    - Response with updated Plan Status Option data
      */
-    @Operation(summary = "Hard update Plan Status Option by Id Api endpoint")
-    @PutMapping("/update/hard/one/{id}")
-    public ResponseEntity<Map<String, Object>> hardUpdate(@RequestParam Long id, @Valid @RequestBody PlanStatusOptionDto planStatusOptionDto){
-        PlanStatusOptionModel planStatusOptionModel = planStatusOptionService.hardUpdateOne(id, convertToModel(planStatusOptionDto));
-        PlanStatusOptionDto dto = convertToDto(planStatusOptionModel);
-        ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Plan Status Option Updated Successfully",
-                "OK",
-                200,
-                LocalDateTime.now()
-        );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Plan Status Options", dto);
-        response.put("ResponseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+    @Operation(summary = "Update a single Plan Status Option by ID, including soft-deleted")
+    @PutMapping("/update/hard/one")
+    public ResponseEntity<Object> hardUpdate(@Valid @RequestBody PlanStatusOptionDto planStatusOptionDto) {
+        PlanStatusOptionModel planStatusOptionModel = planStatusOptionService.hardUpdate(convertToModel(planStatusOptionDto));
+        PlanStatusOptionDto updatedDto = convertToDto(planStatusOptionModel);
+        return new ResponseEntity<>(updatedDto, HttpStatus.OK);
     }
 
     /**
-     * Updates all Plan Status Options, including soft-deleted records, based on their IDs.
-     *
-     * @param planStatusOptionDtos The list of updated Plan Status Option data.
-     * @return ResponseEntity containing a Map with the list of updated PlanStatusOptionDtos and ResponseMessageDto
+     * Updates all Plan Status Options, including soft-deleted.
+     * @param planStatusOptionDtoList - List of updated Plan Status Option data
+     * @return                        - Response with list of updated Plan Status Option data
      */
-    @Operation(summary = "Hard update all Plan Status Options")
+    @Operation(summary = "Update all Plan Status Options, including soft-deleted")
     @PutMapping("/update/hard/all")
-    public ResponseEntity<Map<String, Object>> hardUpdateAll(@Valid @RequestBody List<PlanStatusOptionDto> planStatusOptionDtos){
-        List<PlanStatusOptionModel> inputModels = new ArrayList<>();
-        for (PlanStatusOptionDto dto: planStatusOptionDtos){
-            inputModels.add(convertToModel(dto));
+    public ResponseEntity<Object> hardUpdateAll(@Valid @RequestBody List<PlanStatusOptionDto> planStatusOptionDtoList) {
+        List<PlanStatusOptionModel> inputModelList = new ArrayList<>();
+        for (PlanStatusOptionDto planStatusOptionDto : planStatusOptionDtoList) {
+            inputModelList.add(convertToModel(planStatusOptionDto));
         }
-        List<PlanStatusOptionModel> updatedModels = planStatusOptionService.hardUpdateAll(inputModels);
-        List<PlanStatusOptionDto> dtos = new ArrayList<>();
-        for (PlanStatusOptionModel planStatusOptionModel: updatedModels){
-            dtos.add(convertToDto(planStatusOptionModel));
+        List<PlanStatusOptionModel> updatedModelList = planStatusOptionService.hardUpdateAll(inputModelList);
+        List<PlanStatusOptionDto> updatedDtoList = new ArrayList<>();
+        for (PlanStatusOptionModel model : updatedModelList) {
+            updatedDtoList.add(convertToDto(model));
         }
-        ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Plan Status Options Hard updated successfully",
-                "OK",
-                200,
-                LocalDateTime.now()
-        );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Plan Status Options", dtos);
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(updatedDtoList, HttpStatus.OK);
     }
 
     /**
-     * Soft deletes a single Plan Status Option by ID
-     * @param id ID of the Plan Status Option to softly delete
-     * @return ResponseEntity containing a Map with the soft deleted PlanStatusOptionDto and ResponseMessageDto
+     * Soft deletes a Plan Status Option by ID.
+     * @param id - Plan Status Option ID
+     * @return   - Response with success message
      */
-    @Operation(summary = "Soft delete a single Plan Status Option")
-    @PutMapping("/soft/delete/one/{id}")
-    public ResponseEntity<Map<String, Object>> softDeletePlanStatusOption(@RequestParam Long id){
-        PlanStatusOptionModel deletedPlanStatusOptionModel = planStatusOptionService.softDeletePlanStatusOption(id);
-        PlanStatusOptionDto deletedPlanStatusOptionDto = convertToDto(deletedPlanStatusOptionModel);
+    @Operation(summary = "Soft delete a single Plan Status Option by ID")
+    @PutMapping("/soft/delete/one")
+    public ResponseEntity<Object> softDelete(@RequestParam String id) {
+        PlanStatusOptionModel deletedModel = planStatusOptionService.softDelete(id);
         ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Plan Status Option Soft Deleted successfully",
-                "OK",
-                200,
+                "Plan Status Option soft deleted successfully",
+                HttpStatus.OK.toString(),
                 LocalDateTime.now()
         );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Plan Status Option", deletedPlanStatusOptionDto);
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(responseMessageDto, HttpStatus.OK);
     }
 
     /**
-     * Hard deletes a single Plan Status Option by ID
-     * @param id ID of the Plan Status Option to hard delete
-     * @return ResponseEntity containing a Map with ResponseMessageDto
+     * Hard deletes a Plan Status Option by ID.
+     * @param id - Plan Status Option ID
+     * @return   - Response with success message
      */
-    @Operation(summary = "Hard delete a single Plan Status Option Api endpoint")
+    @Operation(summary = "Hard delete a single Plan Status Option by ID")
     @GetMapping("/hard/delete/{id}")
-    public ResponseEntity<Map<String, Object>> hardDeletePlanStatusOption(@RequestParam Long id){
-        planStatusOptionService.hardDeletePlanStatusOption(id);
+    public ResponseEntity<Object> hardDelete(@RequestParam String id) {
+        planStatusOptionService.hardDelete(id);
         ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Plan Status Option Hard Deleted Successfully",
-                "OK",
-                204,
+                "Plan Status Option hard deleted successfully",
+                HttpStatus.OK.toString(),
                 LocalDateTime.now()
         );
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(responseMessageDto, HttpStatus.OK);
     }
 
     /**
-     * Soft deletes multiple Plan Status Options by IDs
-     * @param ids List of Plan Status Option IDs to softly delete
-     * @return ResponseEntity containing a Map with the list of soft deleted PlanStatusOptionDto and ResponseMessageDto
+     * Soft deletes multiple Plan Status Options by ID.
+     * @param idList - List of Plan Status Option ID
+     * @return       - Response with success message
      */
-    @Operation(summary = "Soft delete multiple Plan Status Options")
+    @Operation(summary = "Soft delete multiple Plan Status Options by ID")
     @PutMapping("/soft/delete/many")
-    public ResponseEntity<Map<String, Object>> softDeletePlanStatusOptions(@RequestBody List<Long> ids){
-        List<PlanStatusOptionModel> deletedPlanStatusOptionModels = planStatusOptionService.softDeletePlanStatusOptions(ids);
-        List<PlanStatusOptionDto> deletedPlanStatusOptionDtos = new ArrayList<>();
-        for (PlanStatusOptionModel model: deletedPlanStatusOptionModels){
-            deletedPlanStatusOptionDtos.add(convertToDto(model));
-        }
+    public ResponseEntity<Object> softDeleteMany(@Valid @RequestParam("id_list") List<String> idList) {
+        List<PlanStatusOptionModel> deletedModelList = planStatusOptionService.softDeleteMany(idList);
         ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Plan Status Options Soft Deleted Successfully",
-                "OK",
-                200,
+                "Plan Status Options soft deleted successfully",
+                HttpStatus.OK.toString(),
                 LocalDateTime.now()
         );
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("Plan Status Options", deletedPlanStatusOptionDtos);
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(responseMessageDto, HttpStatus.OK);
     }
 
     /**
-     * Hard deletes multiple Plan Status Options by IDs
-     * @param ids List of Plan Status Option IDs to hard delete
-     * @return ResponseEntity containing a Map with ResponseMessageDto
+     * Hard deletes multiple Plan Status Options by ID.
+     * @param idList - List of Plan Status Option ID
+     * @return       - Response with success message
      */
-    @Operation(summary = "Hard delete multiple Plan Status Options")
+    @Operation(summary = "Hard delete multiple Plan Status Options by ID")
     @GetMapping("/hard/delete/many")
-    public ResponseEntity<Map<String, Object>> hardDeletePlanStatusOptions(@RequestBody List<Long> ids){
-        planStatusOptionService.hardDeletePlanStatusOptions(ids);
+    public ResponseEntity<Object> hardDeleteMany(@Valid @RequestParam("id_list") List<String> idList) {
+        planStatusOptionService.hardDeleteMany(idList);
         ResponseMessageDto responseMessageDto = new ResponseMessageDto(
                 "Plan Status Options hard deleted successfully",
-                "OK",
-                204,
+                HttpStatus.OK.toString(),
                 LocalDateTime.now()
         );
-        Map<String, Object> response = new HashMap<>();
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(responseMessageDto, HttpStatus.OK);
+    }
+
+    /**
+     * Hard deletes all Plan Status Options, including soft-deleted.
+     * @return - Response with success message
+     */
+    @Operation(summary = "Hard delete all Plan Status Options")
+    @GetMapping("/hard/delete/all")
+    public ResponseEntity<Object> hardDeleteAll() {
+        planStatusOptionService.hardDeleteAll();
+        ResponseMessageDto responseMessageDto = new ResponseMessageDto(
+                "All Plan Status Options hard deleted successfully",
+                HttpStatus.OK.toString(),
+                LocalDateTime.now()
+        );
+        return new ResponseEntity<>(responseMessageDto, HttpStatus.OK);
     }
 }

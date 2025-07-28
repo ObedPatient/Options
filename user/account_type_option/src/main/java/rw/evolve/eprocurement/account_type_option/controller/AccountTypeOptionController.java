@@ -1,7 +1,3 @@
-/**
- * REST API controller for managing Account type options
- * Provides endpoints for creating, retrieving, deleting and updating Account type option data.
- */
 package rw.evolve.eprocurement.account_type_option.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -9,387 +5,303 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import rw.evolve.eprocurement.account_type_option.dto.AccountTypeOptionDto;
-import rw.evolve.eprocurement.account_type_option.dto.ResponseMessageDto;
 import rw.evolve.eprocurement.account_type_option.model.AccountTypeOptionModel;
-import rw.evolve.eprocurement.account_type_option.service.AccountTypeOptionSevice;
+import rw.evolve.eprocurement.account_type_option.service.AccountTypeOptionService;
+import rw.evolve.eprocurement.account_type_option.utils.AccountTypeOptionIdGenerator;
+import rw.evolve.eprocurement.account_type_option.dto.ResponseMessageDto;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
+/**
+ * REST API controller for managing Account type options.
+ * Handles CRUD operations for Account type option data with soft and hard delete capabilities.
+ */
 @RestController
 @RequestMapping("api/account_type_option")
-@Tag(name = "Account Type Option Api")
+@Tag(name = "Account Type Option API")
 public class AccountTypeOptionController {
 
-    private ModelMapper modelMapper = new ModelMapper();
-
     @Autowired
-    private AccountTypeOptionSevice accountTypeOptionSevice;
+    private AccountTypeOptionService accountTypeOptionService;
+
+    private final ModelMapper modelMapper = new ModelMapper();
 
     /**
-     * Converts a AccountTypeOptionModel to AccountTypeOptionDto.
-     * @param model The AccountTypeOptionModel to convert.
-     * @return The converted AccountTypeOptionDto.
+     * Converts AccountTypeOptionModel to AccountTypeOptionDto.
+     * @param model - AccountTypeOptionModel to convert
+     * @return      - Converted AccountTypeOptionDto
      */
-    private AccountTypeOptionDto convertToDto(AccountTypeOptionModel model){
+    private AccountTypeOptionDto convertToDto(AccountTypeOptionModel model) {
         return modelMapper.map(model, AccountTypeOptionDto.class);
     }
 
     /**
-     * Converts a AccountTypeOptionDto to AccountTypeOptionModel.
-     * @param dto The AccountTypeOptionDto to convert.
-     * @return The converted AccountTypeOptionModel.
+     * Converts AccountTypeOptionDto to AccountTypeOptionModel.
+     * @param accountTypeOptionDto - AccountTypeOptionDto to convert
+     * @return                     - Converted AccountTypeOptionModel
      */
-    private AccountTypeOptionModel convertToModel(AccountTypeOptionDto dto){
-        return modelMapper.map(dto, AccountTypeOptionModel.class);
+    private AccountTypeOptionModel convertToModel(AccountTypeOptionDto accountTypeOptionDto) {
+        return modelMapper.map(accountTypeOptionDto, AccountTypeOptionModel.class);
     }
 
     /**
-     * create a single Account type
-     * @param @AccountTypeOptionDto DTO containing Account Type option data
-     * @return ResponseEntity containing a Map with the created AccountTypeOptionDto and a ResponseMessageDto
+     * Creates a single Account type option with a generated ID.
+     * @param accountTypeOptionDto - Account type option data
+     * @return                     - Response with success message
      */
-    @Operation(summary = "Create one Account type option")
+    @Operation(summary = "Create a single Account type option")
     @PostMapping("/create/one")
-    public ResponseEntity<Map<String, Object>> createAccountType(@Valid @RequestBody AccountTypeOptionDto accountTypeOptionDto){
+    public ResponseEntity<Object> save(@Valid @RequestBody AccountTypeOptionDto accountTypeOptionDto) {
         AccountTypeOptionModel accountTypeOptionModel = convertToModel(accountTypeOptionDto);
-        AccountTypeOptionModel createdAccountTypeModel = accountTypeOptionSevice.createAccountType(accountTypeOptionModel);
-        AccountTypeOptionDto createdAccountTypeDto = convertToDto(createdAccountTypeModel);
+        accountTypeOptionModel.setId(AccountTypeOptionIdGenerator.generateId());
+        accountTypeOptionService.save(accountTypeOptionModel);
         ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Account Type option created successfully",
-                "OK",
-                201,
+                "Account type option created successfully",
+                HttpStatus.OK.toString(),
                 LocalDateTime.now()
         );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Account type options", createdAccountTypeDto);
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(responseMessageDto, HttpStatus.OK);
     }
 
     /**
-     * Creates multiple Account type options
-     * @param accountTypeOptionDtos List of account type option DTOs
-     * @return ResponseEntity containing a Map with the created list of AccountTypeOptionDto and a ResponseMessageDto
+     * Creates multiple Account type options with generated IDs.
+     * @param accountTypeOptionDtoList - List of Account type option data
+     * @return                         - Response with success message
      */
-    @Operation(summary = "Create Many Account types Api endpoint")
+    @Operation(summary = "Create multiple Account type options")
     @PostMapping("/create/many")
-    public ResponseEntity<Map<String, Object>> createAccountTypes(@Valid @RequestBody List<AccountTypeOptionDto> accountTypeOptionDtos ){
-        List<AccountTypeOptionModel> accountTypeOptionModels = new ArrayList<>();
-        for (AccountTypeOptionDto dto: accountTypeOptionDtos){
-            accountTypeOptionModels.add(convertToModel(dto));
+    public ResponseEntity<Object> saveMany(@Valid @RequestBody List<AccountTypeOptionDto> accountTypeOptionDtoList) {
+        List<AccountTypeOptionModel> accountTypeOptionModelList = new ArrayList<>();
+        for (AccountTypeOptionDto accountTypeOptionDto : accountTypeOptionDtoList) {
+            AccountTypeOptionModel model = convertToModel(accountTypeOptionDto);
+            model.setId(AccountTypeOptionIdGenerator.generateId());
+            accountTypeOptionModelList.add(model);
         }
-        List<AccountTypeOptionModel> createdModels = accountTypeOptionSevice.createAccountTypes(accountTypeOptionModels);
-        List<AccountTypeOptionDto> createdAccountTypesDtos = new ArrayList<>();
-        for (AccountTypeOptionModel model: createdModels){
-            createdAccountTypesDtos.add(convertToDto(model));
-        }
-        ResponseMessageDto responseMessage = new ResponseMessageDto(
-                "Account type options Created Successfully",
-                "OK",
-                201,
-                LocalDateTime.now()
-        );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Account Type Options", createdAccountTypesDtos);
-        response.put("responseMessage", responseMessage);
-        return ResponseEntity.ok(response);
-    }
-    /**
-     * Retrieves a Account type option by its ID, excluding soft-deleted account types.
-     * @param id The ID of the Account type to retrieve, provided as a request parameter.
-     * @return ResponseEntity containing a Map with the AccountTypeOptionDto and a ResponseMessageDto
-     */
-    @Operation(summary = "Get One Account type option API")
-    @GetMapping("/read/one/{id}")
-    public ResponseEntity<Map<String, Object>> readOne(@RequestParam("AccountTypeOptionId") Long id){
-        AccountTypeOptionModel model = accountTypeOptionSevice.readOne(id);
-        AccountTypeOptionDto dto = convertToDto(model);
+        accountTypeOptionService.saveMany(accountTypeOptionModelList);
         ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Account type option Retrieved Successfully",
-                "OK",
-                200,
+                "Account type options created successfully",
+                HttpStatus.OK.toString(),
                 LocalDateTime.now()
         );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Account Type Option", dto);
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(responseMessageDto, HttpStatus.OK);
     }
 
     /**
-     * Retrieves all non-deleted Account types.
-     * @return ResponseEntity containing a Map with a list of AccountTypeOptionDto and a ResponseMessageDto
+     * Retrieves an Account type option by ID (excludes soft-deleted).
+     * @param id - Account type option ID
+     * @return   - Response with Account type option data
      */
-    @Operation(summary = "Read all Account Types Api endpoint")
+    @Operation(summary = "Get a single Account type option by ID")
+    @GetMapping("/read/one")
+    public ResponseEntity<Object> readOne(@RequestParam("id") String id) {
+        AccountTypeOptionModel model = accountTypeOptionService.readOne(id);
+        AccountTypeOptionDto accountTypeOptionDto = convertToDto(model);
+        return new ResponseEntity<>(accountTypeOptionDto, HttpStatus.OK);
+    }
+
+    /**
+     * Retrieves all non-deleted Account type options.
+     * @return  - Response with list of Account type option data
+     */
+    @Operation(summary = "Get all available Account type options")
     @GetMapping("/read/all")
-    public ResponseEntity<Map<String, Object>> readAll(){
-        List<AccountTypeOptionModel> accountTypeOptionModels = accountTypeOptionSevice.readAll();
-        List<AccountTypeOptionDto> accountTypeOptionDtos = new ArrayList<>();
-        for (AccountTypeOptionModel accountTypeOptionModel: accountTypeOptionModels){
-            accountTypeOptionDtos.add(convertToDto(accountTypeOptionModel));
+    public ResponseEntity<Object> readAll() {
+        List<AccountTypeOptionModel> accountTypeOptionModelList = accountTypeOptionService.readAll();
+        List<AccountTypeOptionDto> accountTypeOptionDtoList = new ArrayList<>();
+        for (AccountTypeOptionModel accountTypeOptionModel : accountTypeOptionModelList) {
+            accountTypeOptionDtoList.add(convertToDto(accountTypeOptionModel));
         }
-        ResponseMessageDto responseMessage = new ResponseMessageDto(
-                "Account type options Retrieved Successfully",
-                "OK",
-                200,
-                LocalDateTime.now()
-        );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Account Type Options", accountTypeOptionDtos);
-        response.put("responseMessage", responseMessage);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(accountTypeOptionDtoList, HttpStatus.OK);
     }
 
     /**
-     * Retrieves all Account types, including soft-deleted ones.
-     * @return ResponseEntity containing a Map with a list of AccountTypeDto and a ResponseMessageDto
+     * Retrieves all Account type options, including soft-deleted.
+     * @return  - Response with list of all Account type option data
      */
-    @Operation(summary = "Hard read all Account types Api endpoint")
+    @Operation(summary = "Get all Account type options, including soft-deleted")
     @GetMapping("/read/hard/all")
-    public ResponseEntity<Map<String, Object>> hardReadAll(){
-        List<AccountTypeOptionModel> models = accountTypeOptionSevice.hardReadAll();
-        List<AccountTypeOptionDto> dtos = new ArrayList<>();
-        for (AccountTypeOptionModel model: models){
-            dtos.add(convertToDto(model));
+    public ResponseEntity<Object> hardReadAll() {
+        List<AccountTypeOptionModel> modelList = accountTypeOptionService.hardReadAll();
+        List<AccountTypeOptionDto> accountTypeOptionDtoList = new ArrayList<>();
+        for (AccountTypeOptionModel model : modelList) {
+            accountTypeOptionDtoList.add(convertToDto(model));
         }
-        ResponseMessageDto responseMessage = new ResponseMessageDto(
-                "All Account type option Retrieved Successfully",
-                "OK",
-                200,
-                LocalDateTime.now()
-        );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Account types  options", dtos);
-        response.put("responseMessage", responseMessage);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(accountTypeOptionDtoList, HttpStatus.OK);
     }
+
     /**
-     * Retrieves multiple Account type options  by their IDs, excluding soft-deleted data.
-     * @param ids List of Account type year IDs
-     * @return ResponseEntity containing a Map with a list of AccountTypeOptionDto and a ResponseMessageDto
+     * Retrieves multiple Account type options by ID (excludes soft-deleted).
+     * @param idList - List of Account type option IDs
+     * @return       - Response with list of Account type option data
      */
-    @Operation(summary = "Retrieve multiple Account types year with their Ids Api")
-    @PostMapping("read/many")
-    public ResponseEntity<Map<String, Object>> readMany(@Valid @RequestBody List<Long> ids){
-        List<AccountTypeOptionModel> accountTypeOptionModels = accountTypeOptionSevice.readMany(ids);
-        List<AccountTypeOptionDto> accountTypeOptionDtos = new ArrayList<>();
-        for (AccountTypeOptionModel model: accountTypeOptionModels){
-            accountTypeOptionDtos.add(convertToDto(model));
+    @Operation(summary = "Get multiple Account type options by ID")
+    @PostMapping("/read/many")
+    public ResponseEntity<Object> readMany(@Valid @RequestParam("id_list") List<String> idList) {
+        List<AccountTypeOptionModel> accountTypeOptionModelList = accountTypeOptionService.readMany(idList);
+        List<AccountTypeOptionDto> accountTypeOptionDtoList = new ArrayList<>();
+        for (AccountTypeOptionModel model : accountTypeOptionModelList) {
+            accountTypeOptionDtoList.add(convertToDto(model));
         }
-        ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Account type option Retrieved Successfully",
-                "OK",
-                200,
-                LocalDateTime.now()
-        );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Account type options", accountTypeOptionDtos);
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(accountTypeOptionDtoList, HttpStatus.OK);
     }
 
     /**
-     * Updates a Account type by its ID, excluding soft-deleted records.
-     * @param id The ID of the Account type year to update
-     * @param accountTypeOptionDto The updated Account type data
-     * @return ResponseEntity containing a Map with the updated AccountTypeDto and a ResponseMessageDto
+     * Updates an Account type option by ID (excludes soft-deleted).
+     * @param accountTypeOptionDto - Updated Account type option data
+     * @return                     - Response with updated Account type option data
      */
-    @Operation(summary = "Update One Account type option year Api")
-    @PutMapping("/update/one/{id}")
-    public ResponseEntity<Map<String, Object>> updateOne(@Valid @RequestParam Long id,
-                                                         @Valid @RequestBody AccountTypeOptionDto accountTypeOptionDto){
-        AccountTypeOptionModel accountTypeOptionModel = accountTypeOptionSevice.updateOne(id, convertToModel((accountTypeOptionDto)));
-        AccountTypeOptionDto dto = convertToDto(accountTypeOptionModel);
-        ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Account type option Year Updated Successfully",
-                "OK",
-                200,
-                LocalDateTime.now()
-        );
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("Account Type option", dto);
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+    @Operation(summary = "Update a single Account type option by ID")
+    @PutMapping("/update/one")
+    public ResponseEntity<Object> updateOne(@Valid @RequestBody AccountTypeOptionDto accountTypeOptionDto) {
+        String modelId = accountTypeOptionDto.getId();
+        AccountTypeOptionModel savedModel = accountTypeOptionService.readOne(modelId);
+        savedModel.setName(accountTypeOptionDto.getName());
+        savedModel.setDescription(accountTypeOptionDto.getDescription());
+        accountTypeOptionService.updateOne(savedModel);
+        AccountTypeOptionDto updatedDto = convertToDto(savedModel);
+        return new ResponseEntity<>(updatedDto, HttpStatus.OK);
     }
 
     /**
-     * Updates multiple Account type option  based on the provided list of Account type option DTOs.
-     * Excludes soft-deleted records from updates.
-     *
-     * @param accountTypeOptionDtos List of AccountTypeDto objects containing updated Account type data
-     * @return ResponseEntity containing a Map with the list of updated AccountTypeDtos and ResponseMessageEntity
+     * Updates multiple Account type options (excludes soft-deleted).
+     * @param accountTypeOptionDtoList - List of updated Account type option data
+     * @return                         - Response with list of updated Account type option data
      */
-    @Operation(summary = "Upadate multiple Account type options Api endpoint")
+    @Operation(summary = "Update multiple Account type options")
     @PutMapping("/update/many")
-    public ResponseEntity<Map<String, Object>> updateMany(@Valid @RequestBody List<AccountTypeOptionDto> accountTypeOptionDtos){
-        List<AccountTypeOptionModel> inputModels = new ArrayList<>();
-        for (AccountTypeOptionDto dto: accountTypeOptionDtos){
-            inputModels.add(convertToModel(dto));
+    public ResponseEntity<Object> updateMany(@Valid @RequestBody List<AccountTypeOptionDto> accountTypeOptionDtoList) {
+        List<AccountTypeOptionModel> inputModelList = new ArrayList<>();
+        for (AccountTypeOptionDto accountTypeOptionDto : accountTypeOptionDtoList) {
+            inputModelList.add(convertToModel(accountTypeOptionDto));
         }
-        List<AccountTypeOptionModel> updatedModels = accountTypeOptionSevice.updateMany((inputModels));
-        List<AccountTypeOptionDto> dtos = new ArrayList<>();
-        for (AccountTypeOptionModel model: updatedModels){
-            dtos.add(convertToDto(model));
+        List<AccountTypeOptionModel> updatedModelList = accountTypeOptionService.updateMany(inputModelList);
+        List<AccountTypeOptionDto> updatedDtoList = new ArrayList<>();
+        for (AccountTypeOptionModel model : updatedModelList) {
+            updatedDtoList.add(convertToDto(model));
         }
-        ResponseMessageDto responseMessage = new ResponseMessageDto(
-                "Account types Updated Successfully",
-                "OK",
-                200,
-                LocalDateTime.now()
-        );
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("Account Type options", dtos);
-        response.put("responseMessage", responseMessage);
-        return ResponseEntity.ok(response);
-    }
-    /**
-     * Updates a Account type by its ID, including soft-deleted records.
-     *
-     * @param id The ID of the Account type to update.
-     * @param accountTypeOptionDto The updated Account type data.
-     * @return ResponseEntity containing a Map with the updated AccountTypeOptionDto and ResponseMessageEntity
-     */
-    @Operation(summary = "Hard update procurement type by Id Api endpoint")
-    @PutMapping("/update/hard/one/{id}")
-    public ResponseEntity<Map<String, Object>> hardUpdate(@RequestParam Long id, @Valid @RequestBody AccountTypeOptionDto accountTypeOptionDto){
-        AccountTypeOptionModel accountTypeOptionModel = accountTypeOptionSevice.hardUpdateOne(id, convertToModel(accountTypeOptionDto));
-        AccountTypeOptionDto dto = convertToDto(accountTypeOptionModel);
-        ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Account type Updated Successfully",
-                "OK",
-                200,
-                LocalDateTime.now()
-        );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Account Type options", dto);
-        response.put("Response Message", responseMessageDto);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(updatedDtoList, HttpStatus.OK);
     }
 
     /**
-     * Updates all Account types, including soft-deleted records, based on their IDs.
-     *
-     * @param accountTypeOptionDtos The list of updated Account type option data.
-     * @return ResponseEntity containing a Map with the list of updated AccountTypeOptionDtos and ResponseMessageEntity
+     * Updates an Account type option by ID, including soft-deleted.
+     * @param accountTypeOptionDto - Updated Account type option data
+     * @return                     - Response with updated Account type option data
      */
-    @Operation(summary = "Hard update all Account types")
+    @Operation(summary = "Update a single Account type option by ID, including soft-deleted")
+    @PutMapping("/update/hard/one")
+    public ResponseEntity<Object> hardUpdate(@Valid @RequestBody AccountTypeOptionDto accountTypeOptionDto) {
+        AccountTypeOptionModel accountTypeOptionModel = accountTypeOptionService.hardUpdate(convertToModel(accountTypeOptionDto));
+        AccountTypeOptionDto updatedDto = convertToDto(accountTypeOptionModel);
+        return new ResponseEntity<>(updatedDto, HttpStatus.OK);
+    }
+
+    /**
+     * Updates all Account type options, including soft-deleted.
+     * @param accountTypeOptionDtoList - List of updated Account type option data
+     * @return                         - Response with list of updated Account type option data
+     */
+    @Operation(summary = "Update all Account type options, including soft-deleted")
     @PutMapping("/update/hard/all")
-    public ResponseEntity<Map<String, Object>> hardUpdateAll(@Valid @RequestBody List<AccountTypeOptionDto> accountTypeOptionDtos){
-        List<AccountTypeOptionModel> inputModels = new ArrayList<>();
-        for (AccountTypeOptionDto dto: accountTypeOptionDtos){
-            inputModels.add(convertToModel(dto));
+    public ResponseEntity<Object> hardUpdateAll(@Valid @RequestBody List<AccountTypeOptionDto> accountTypeOptionDtoList) {
+        List<AccountTypeOptionModel> inputModelList = new ArrayList<>();
+        for (AccountTypeOptionDto accountTypeOptionDto : accountTypeOptionDtoList) {
+            inputModelList.add(convertToModel(accountTypeOptionDto));
         }
-        List<AccountTypeOptionModel> updatedModels = accountTypeOptionSevice.hardUpdateAll(inputModels);
-        List<AccountTypeOptionDto> dtos = new ArrayList<>();
-        for (AccountTypeOptionModel accountTypeOptionModel: updatedModels){
-            dtos.add(convertToDto(accountTypeOptionModel));
+        List<AccountTypeOptionModel> updatedModelList = accountTypeOptionService.hardUpdateAll(inputModelList);
+        List<AccountTypeOptionDto> updatedDtoList = new ArrayList<>();
+        for (AccountTypeOptionModel model : updatedModelList) {
+            updatedDtoList.add(convertToDto(model));
         }
-        ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Account types Hard updated successfully",
-                "OK",
-                200,
-                LocalDateTime.now()
-        );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Account type Options", dtos);
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
-    }
-    /**
-     * Soft deletes a single Account type by ID
-     * @param id ID of the Account type to softly delete
-     * @return ResponseEntity containing a Map with the soft deleted AccountTypeOptionDto and ResponseMessageEntity
-     */
-    @Operation(summary = "Soft delete a single procurement type")
-    @PutMapping("/soft/delete/one/{id}")
-    public ResponseEntity<Map<String, Object>> softDeleteAccountTypeOption(@RequestParam Long id){
-        AccountTypeOptionModel deletedAccountTypeOptionModel = accountTypeOptionSevice.softDeleteAccountTypeOption(id);
-        AccountTypeOptionDto deletedAccountTypeOptionDto = convertToDto(deletedAccountTypeOptionModel);
-        ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Account type Soft Deleted successfully",
-                "OK",
-                200,
-                LocalDateTime.now()
-        );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Account type", deletedAccountTypeOptionDto);
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(updatedDtoList, HttpStatus.OK);
     }
 
     /**
-     * Hard deletes a single Account type by ID
-     * @param id ID of the Account type option to hard delete
-     * @return ResponseEntity containing a Map with ResponseMessageEntity
+     * Soft deletes an Account type option by ID.
+     * @param id - Account type option ID
+     * @return   - Response with success message
      */
-    @Operation(summary = "Hard delete a single Account type Api endpoint")
+    @Operation(summary = "Soft delete a single Account type option by ID")
+    @PutMapping("/soft/delete/one")
+    public ResponseEntity<Object> softDelete(@RequestParam String id) {
+        AccountTypeOptionModel deletedModel = accountTypeOptionService.softDelete(id);
+        ResponseMessageDto responseMessageDto = new ResponseMessageDto(
+                "Account type option soft deleted successfully",
+                HttpStatus.OK.toString(),
+                LocalDateTime.now()
+        );
+        return new ResponseEntity<>(responseMessageDto, HttpStatus.OK);
+    }
+
+    /**
+     * Hard deletes an Account type option by ID.
+     * @param id - Account type option ID
+     * @return   - Response with success message
+     */
+    @Operation(summary = "Hard delete a single Account type option by ID")
     @GetMapping("/hard/delete/{id}")
-    public ResponseEntity<Map<String, Object>> hardDeleteAccountTypeOption(@RequestParam Long id){
-        accountTypeOptionSevice.hardDeleteAccountTypeOption(id);
+    public ResponseEntity<Object> hardDelete(@RequestParam String id) {
+        accountTypeOptionService.hardDelete(id);
         ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Account type Hard Deleted Successfully",
-                "OK",
-                204,
+                "Account type option hard deleted successfully",
+                HttpStatus.OK.toString(),
                 LocalDateTime.now()
         );
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(responseMessageDto, HttpStatus.OK);
     }
 
     /**
-     * Soft deletes multiple Account types by IDs
-     * @param ids List of Account type IDs to softly delete
-     * @return ResponseEntity containing a Map with the list of soft deleted AccountTypeOptionDto and ResponseMessageEntity
+     * Soft deletes multiple Account type options by ID.
+     * @param idList - List of Account type option IDs
+     * @return       - Response with success message
      */
-    @Operation(summary = "Soft delete multiple Account type API")
+    @Operation(summary = "Soft delete multiple Account type options by ID")
     @PutMapping("/soft/delete/many")
-    public ResponseEntity<Map<String, Object>> softDeleteAccountTypeOptions(@RequestBody List<Long> ids){
-        List<AccountTypeOptionModel> deletedAccountTypeOptionModels = accountTypeOptionSevice.softDeleteAccountTypeOptions(ids);
-        List<AccountTypeOptionDto> deletedAccountTypeOptionDtos = new ArrayList<>();
-        for (AccountTypeOptionModel model: deletedAccountTypeOptionModels){
-            deletedAccountTypeOptionDtos.add(convertToDto(model));
-        }
+    public ResponseEntity<Object> softDeleteMany(@Valid @RequestParam("idList") List<String> idList) {
+        List<AccountTypeOptionModel> deletedModelList = accountTypeOptionService.softDeleteMany(idList);
         ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Account type Soft Deleted Successfully",
-                "OK",
-                200,
+                "Account type options soft deleted successfully",
+                HttpStatus.OK.toString(),
                 LocalDateTime.now()
         );
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("Account type options", deletedAccountTypeOptionDtos);
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(responseMessageDto, HttpStatus.OK);
     }
+
     /**
-     * Hard deletes multiple procurement types by IDs
-     * @param ids List of Account type IDs to hard delete
-     * @return ResponseEntity containing a Map with ResponseMessageEntity
+     * Hard deletes multiple Account type options by ID.
+     * @param idList - List of Account type option IDs
+     * @return       - Response with success message
      */
-    @Operation(summary = "Hard delete multiple procurement types")
+    @Operation(summary = "Hard delete multiple Account type options by ID")
     @GetMapping("/hard/delete/many")
-    public ResponseEntity<Map<String, Object>> hardDeleteAccountTypeOptions(@RequestBody List<Long> ids){
-        accountTypeOptionSevice.hardDeleteAccountTypeOptions(ids);
+    public ResponseEntity<Object> hardDeleteMany(@Valid @RequestParam("idList") List<String> idList) {
+        accountTypeOptionService.hardDeleteMany(idList);
         ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Account type hard deleted successfully",
-                "OK",
-                204,
+                "Account type options hard deleted successfully",
+                HttpStatus.OK.toString(),
                 LocalDateTime.now()
         );
-        Map<String, Object> response = new HashMap<>();
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(responseMessageDto, HttpStatus.OK);
     }
 
+    /**
+     * Hard deletes all Account type options, including soft-deleted.
+     * @return - Response with success message
+     */
+    @Operation(summary = "Hard delete all Account type options")
+    @GetMapping("/hard/delete/all")
+    public ResponseEntity<Object> hardDeleteAll() {
+        accountTypeOptionService.hardDeleteAll();
+        ResponseMessageDto responseMessageDto = new ResponseMessageDto(
+                "All Account type options hard deleted successfully",
+                HttpStatus.OK.toString(),
+                LocalDateTime.now()
+        );
+        return new ResponseEntity<>(responseMessageDto, HttpStatus.OK);
+    }
 }

@@ -1,5 +1,5 @@
 /**
- * Entity representing a account type option in the database.
+ * Entity representing a account type in "user" table "account type" field option in the database.
  */
 package rw.evolve.eprocurement.account_type_option.model;
 
@@ -10,23 +10,19 @@ import rw.evolve.eprocurement.account_type_option.model.base.GeneralTimestampBas
 
 @Data
 @Entity
-@Table(name = "account_type_option_model")
+@Table(name = "account_type_option")
 @EqualsAndHashCode(callSuper =false, onlyExplicitlyIncluded = true)
 public class AccountTypeOptionModel extends GeneralTimestampBaseModel {
 
-    /** Unique identifier for the Account type option. */
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "account_type_option_id")
-    @EqualsAndHashCode.Include
-    private Long id;
+    @Column(name = "id")
+    private String id;
 
-    /** name of the type option */
     @Column(name = "name", nullable = false)
+    @EqualsAndHashCode.Include
     private String name;
 
-    /** Brief description of the type option. */
-    @Column(name = "description", nullable = false)
+    @Column(name = "description")
     private String description;
 
 

@@ -11,17 +11,14 @@ import lombok.Data;
 @Data
 public class ProcurementMethodOptionDto {
 
-    /** Unique identifier for the Procurement method */
     @JsonProperty("procurement_method_option_id")
-    private Long id;
+    private String id;
 
-    /** name of procurement method option*/
     @JsonProperty("name")
     @NotNull(message = "name is mandatory")
     @Size(max = 255, message = "Name cannot exceed 150 characters")
     private String name;
 
-    /** description of the procurement method option*/
     @JsonProperty("description")
     @NotNull(message = "description is mandatory")
     @Size(max = 255, message = "Description cannot exceed 255 characters")

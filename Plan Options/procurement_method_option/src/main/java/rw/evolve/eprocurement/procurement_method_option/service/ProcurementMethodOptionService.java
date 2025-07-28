@@ -1,12 +1,11 @@
 /**
  * Service for managing ProcurementMethodOption entities.
  * Provides functionality to create, read, update, and delete ProcurementMethodOption data, supporting both
- * soft and hard deletion operation.
+ * soft and hard deletion operations.
  */
 package rw.evolve.eprocurement.procurement_method_option.service;
 
 import jakarta.transaction.Transactional;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import rw.evolve.eprocurement.procurement_method_option.exception.ProcurementMethodNotFoundException;
@@ -21,321 +20,281 @@ import java.util.List;
 @Service
 public class ProcurementMethodOptionService {
 
-
-
     @Autowired
     private ProcurementMethodOptionRepository procurementMethodOptionRepository;
 
-
-    private final ModelMapper modelMapper = new ModelMapper();
-
     /**
-     * Creates a single Procurement Method option entity.
+     * Creates a single Procurement Method option model with a generated ID.
      *
-     * @param @ProcurementMethodOptionModel the ProcurementMethodOptionModel to be created
-     * @return the saved ProcurementMethodOption model
+     * @param procurementMethodOptionModel                  - the ProcurementMethodOptionModel to be created
+     * @return                                              - the saved ProcurementMethodOption model
+     * @throws ProcurementMethodOptionAlreadyExistException - if a ProcurementMethodOption with the same name exists
      */
     @Transactional
-    public ProcurementMethodOptionModel createProcurementMethod(ProcurementMethodOptionModel procurementMethodOptionModel){
-        if (procurementMethodOptionRepository.existsByName(procurementMethodOptionModel.getName())){
-            throw new ProcurementMethodOptionAlreadyExistException("Procurement Method Already exists: " + procurementMethodOptionModel.getName());
+    public ProcurementMethodOptionModel save(ProcurementMethodOptionModel procurementMethodOptionModel) {
+        if (procurementMethodOptionModel == null) {
+            throw new NullPointerException("Procurement Method option cannot be null");
+        }
+        if (procurementMethodOptionRepository.existsByName(procurementMethodOptionModel.getName())) {
+            throw new ProcurementMethodOptionAlreadyExistException("Procurement Method option already exists: " + procurementMethodOptionModel.getName());
         }
         return procurementMethodOptionRepository.save(procurementMethodOptionModel);
     }
 
     /**
-     * Creates multiple Procurement Method entities, each with a unique ID.
-     * Iterates through the provided list of Procurement Method models
+     * Creates multiple Procurement Method option models, each with a unique generated ID.
      *
-     * @param procurementMethodOptionModels the list of Procurement Method option models to be created
-     * @return a list of saved Procurement Method Option models.
+     * @param procurementMethodOptionModelList - the list of Procurement Method option models to be created
+     * @return                                 - a list of saved Procurement Method option models
+     * @throws IllegalArgumentException        - if the input list is null or empty
      */
     @Transactional
-    public List<ProcurementMethodOptionModel> createProcurementMethods(List<ProcurementMethodOptionModel> procurementMethodOptionModels){
-        if (procurementMethodOptionModels == null){
-            throw new IllegalArgumentException("Procurement Method option model cannot be null");
+    public List<ProcurementMethodOptionModel> saveMany(List<ProcurementMethodOptionModel> procurementMethodOptionModelList) {
+        if (procurementMethodOptionModelList == null || procurementMethodOptionModelList.isEmpty()) {
+            throw new IllegalArgumentException("Procurement Method option model list cannot be null or empty");
         }
-        List<ProcurementMethodOptionModel> savedProcurementMethodModels = new ArrayList<>();
-        for (ProcurementMethodOptionModel procurementMethodOptionModel: procurementMethodOptionModels){
-            ProcurementMethodOptionModel savedProcurementMethodModel = procurementMethodOptionRepository.save(procurementMethodOptionModel);
-            savedProcurementMethodModels.add(savedProcurementMethodModel);
+        for (ProcurementMethodOptionModel procurementMethodOptionModel : procurementMethodOptionModelList) {
+            if (procurementMethodOptionRepository.existsByName(procurementMethodOptionModel.getName())) {
+                throw new ProcurementMethodOptionAlreadyExistException("Procurement Method option already exists: " + procurementMethodOptionModel.getName());
+            }
         }
-        return savedProcurementMethodModels;
+        return procurementMethodOptionRepository.saveAll(procurementMethodOptionModelList);
     }
 
     /**
-     * Retrieves a single Account Method option entity by its ID.
-     * Throws a ProcurementMethodOptionNotFoundException if the Account Method option is not found or has been deleted.
+     * Retrieves a single Procurement Method option model by its ID.
+     * Throws a ProcurementMethodNotFoundException if the Procurement Method option is not found or has been deleted.
      *
-     * @param @ProcurementMethodOption id the ID of the Procurement Method option to retrieve
-     * @return the Procurement Method option model if found and not deleted
-     * @throws ProcurementMethodNotFoundException if the Procurement Method option is not found.
+     * @param id                                  - the ID of the Procurement Method option to retrieve
+     * @return                                    - the Procurement Method option model if found and not deleted
+     * @throws ProcurementMethodNotFoundException - if the Procurement Method option is not found
+     * @throws NullPointerException               - if Procurement Method option ID is null
      */
     @Transactional
-    public ProcurementMethodOptionModel readOne(Long id){
-        ProcurementMethodOptionModel procurementTypeOptionModel = procurementMethodOptionRepository.findById(id)
-                .orElseThrow(()-> new ProcurementMethodNotFoundException("Procurement Method option not found with id:" + id));
-        if (procurementTypeOptionModel.getDeletedAt() != null){
-            throw new ProcurementMethodNotFoundException("Procurement Method option not found with id:" + id);
+    public ProcurementMethodOptionModel readOne(String id) {
+        if (id == null) {
+            throw new NullPointerException("Procurement Method option ID cannot be null");
         }
-        return procurementTypeOptionModel;
+        ProcurementMethodOptionModel procurementMethodOptionModel = procurementMethodOptionRepository.findById(id)
+                .orElseThrow(() -> new ProcurementMethodNotFoundException("Procurement Method option not found with ID: " + id));
+        if (procurementMethodOptionModel.getDeletedAt() != null) {
+            throw new ProcurementMethodNotFoundException("Procurement Method option not found with ID: " + id);
+        }
+        return procurementMethodOptionModel;
     }
 
     /**
-     * Retrieves a list of ProcurementMethodOption objects based on the provided ProcurementMethodOption IDs.
+     * Retrieves a list of ProcurementMethodOption models based on the provided ProcurementMethodOption IDs.
      *
-     * @param procurementMethodOptionIds A list of ProcurementMethodOption IDs to retrieve
-     * @return A list of ProcurementMethodOptionModel objects that are not marked as deleted
-     * @throws ProcurementMethodNotFoundException if a ProcurementMethodOption with the given ID is not found
+     * @param procurementMethodOptionIdList - A list of ProcurementMethodOption IDs to retrieve
+     * @return                              - A list of ProcurementMethodOptionModel objects that are not marked as deleted
+     * @throws NullPointerException         - if a ProcurementMethodOption ID list is null
      */
     @Transactional
-    public List<ProcurementMethodOptionModel> readMany(List<Long> procurementMethodOptionIds){
-        if (procurementMethodOptionIds == null){
-            throw new IllegalArgumentException("Procurement Method option id cannot be null or empty");
+    public List<ProcurementMethodOptionModel> readMany(List<String> procurementMethodOptionIdList) {
+        if (procurementMethodOptionIdList == null || procurementMethodOptionIdList.isEmpty()) {
+            throw new NullPointerException("Procurement Method option ID list cannot be null");
         }
-        List<ProcurementMethodOptionModel> models = new ArrayList<>();
-        for (Long id: procurementMethodOptionIds){
-            if (id == null){
-                throw new IllegalArgumentException("Procurement Method option id cannot be null or emty");
+        List<ProcurementMethodOptionModel> modelList = new ArrayList<>();
+        for (String id : procurementMethodOptionIdList) {
+            if (id == null) {
+                throw new NullPointerException("Procurement Method option ID cannot be null");
             }
             ProcurementMethodOptionModel procurementMethodOptionModel = procurementMethodOptionRepository.findById(id)
-                    .orElseThrow(()-> new ProcurementMethodNotFoundException("Procurement Method Not found with id:" + id));
-            if (procurementMethodOptionModel.getDeletedAt() == null){
-                models.add(procurementMethodOptionModel);
+                    .orElse(null);
+            if (procurementMethodOptionModel == null) {
+                continue;
+            }
+            if (procurementMethodOptionModel.getDeletedAt() == null) {
+                modelList.add(procurementMethodOptionModel);
             }
         }
-        return models;
+        return modelList;
     }
 
     /**
-     * Retrieve all ProcurementMethod Option that are not marked as deleted
-     * @return a List of Procurement Method option object where deleted in null
-     * @throws ProcurementMethodNotFoundException if no Procurement Method option found
-     */
-    @Transactional
-    public List<ProcurementMethodOptionModel> readAll(){
-        List<ProcurementMethodOptionModel> procurementMethodOptionModels = procurementMethodOptionRepository.findByDeletedAtIsNull();
-        if (procurementMethodOptionModels.isEmpty()){
-            throw new ProcurementMethodNotFoundException("No Procurement Method found");
-        }
-        return procurementMethodOptionModels;
-    }
-
-    /**
-     * Retrieves all ProcurementMethodOptionModels, including those marked as deleted.
+     * Retrieve all Procurement Method options that are not marked as deleted.
      *
-     * @return A list of all ProcurementMethodOptionModel objects
-     * @throws ProcurementMethodNotFoundException if no ProcurementMethodOption are found
+     * @return - a List of Procurement Method option models where deletedAt is null
      */
     @Transactional
-    public List<ProcurementMethodOptionModel> hardReadAll(){
-        List<ProcurementMethodOptionModel> procurementMethodOptionModels = procurementMethodOptionRepository.findAll();
-        if (procurementMethodOptionModels.isEmpty()){
-            throw new ProcurementMethodNotFoundException("No Procurement Method option found");
-        }
-        return procurementMethodOptionModels;
+    public List<ProcurementMethodOptionModel> readAll() {
+        return procurementMethodOptionRepository.findByDeletedAtIsNull();
     }
 
     /**
-     * Updates a single ProcurementMethodOptionModel model identified by the provided ID.
-     * @param id The ID of the ProcurementMethodOption to update
-     * @param model The ProcurementMethodOptionModel containing updated data
-     * @return The updated ProcurementMethodOptionModel
-     * @throws ProcurementMethodNotFoundException if the ProcurementMethodOptionModel is not found or is marked as deleted
-     */
-    @Transactional
-    public ProcurementMethodOptionModel updateOne(Long id, ProcurementMethodOptionModel model){
-        if (id == null){
-            throw new IllegalArgumentException("Procurement Method option id cannot be null");
-        }
-        if (model == null){
-            throw new IllegalArgumentException("Procurement Method Option cannot be null");
-        }
-        ProcurementMethodOptionModel procurementMethodOptionModel = procurementMethodOptionRepository.findById(id)
-                .orElseThrow(()-> new ProcurementMethodNotFoundException("Procurement Method option not found with id:" + id));
-        if (procurementMethodOptionModel.getDeletedAt() != null){
-            throw new ProcurementMethodNotFoundException("Procurement Method option is marked as deleted with id:" + id);
-        }
-        modelMapper.map(model, procurementMethodOptionModel);
-        procurementMethodOptionModel.setUpdatedAt(LocalDateTime.now());
-        return procurementMethodOptionRepository.save(procurementMethodOptionModel);
-    }
-
-    /**
-     * Updates multiple ProcurementTypeOption models in a transactional manner.
+     * Retrieves all ProcurementMethodOption models, including those marked as deleted.
      *
-     * @param models List of ProcurementTypeOptionModel objects containing updated data
-     * @return List of updated ProcurementTypeOptionModel objects
-     * @throws IllegalArgumentException if any ProcurementTypeOptionModel is null
-     * @throws ProcurementMethodNotFoundException if a ProcurementTypeOptionModel is not found or marked as deleted
+     * @return - A list of all ProcurementMethodOptionModel objects
      */
     @Transactional
-    public List<ProcurementMethodOptionModel> updateMany(List<ProcurementMethodOptionModel> models){
-        if (models == null || models.isEmpty()){
-            throw new IllegalArgumentException("Procurement Method option model List cannot be null or empty");
-        }
-        List<ProcurementMethodOptionModel> updatedModel = new ArrayList<>();
-        for (ProcurementMethodOptionModel model: models){
-            if (model.getId() == null){
-                throw new IllegalArgumentException("Procurement Method option id cannot be null");
-            }
-            ProcurementMethodOptionModel existingModel = procurementMethodOptionRepository.findById(model.getId())
-                    .orElseThrow(()-> new ProcurementMethodNotFoundException("Procurement Method option not found with id:" + model.getId()));
-            if (existingModel.getDeletedAt() !=null ){
-                throw new ProcurementMethodNotFoundException("Procurement Method option with id:" + model.getId() + "marked as deleted");
-            }
-            modelMapper.map(model, existingModel);
-            existingModel.setUpdatedAt(LocalDateTime.now());
-            updatedModel.add(procurementMethodOptionRepository.save(existingModel));
-        }
-        return updatedModel;
+    public List<ProcurementMethodOptionModel> hardReadAll() {
+        return procurementMethodOptionRepository.findAll();
     }
 
     /**
-     * Updates a single procurement Method option model by ID.
-     * @param id The ID of the procurement Method option to update
-     * @param model The ProcurementMethodOptionModel containing updated data
-     * @return The updated ProcurementMethodOptionModel
-     * @throws IllegalArgumentException if the Procurement Method option ID is null
-     * @throws ProcurementMethodNotFoundException if the Procurement Method option is not found
+     * Updates a single Procurement Method option model identified by the provided ID.
+     *
+     * @param model                                         - The ProcurementMethodOptionModel containing updated data
+     * @return                                              - The updated ProcurementMethodOptionModel
+     * @throws ProcurementMethodOptionAlreadyExistException - if Procurement Method option already exists
      */
     @Transactional
-    public ProcurementMethodOptionModel hardUpdateOne(Long id, ProcurementMethodOptionModel model){
+    public ProcurementMethodOptionModel updateOne(ProcurementMethodOptionModel model) {
+        if (model.getName() != null && procurementMethodOptionRepository.existsByNameAndIdNot(model.getName(), model.getId())) {
+            throw new ProcurementMethodOptionAlreadyExistException("Procurement Method option already exists with name: " + model.getName());
+        }
+        ProcurementMethodOptionModel existing = procurementMethodOptionRepository.findById(model.getId())
+                .orElseThrow(() -> new ProcurementMethodNotFoundException("Procurement Method option not found with ID: " + model.getId()));
+        if (existing.getDeletedAt() != null) {
+            throw new ProcurementMethodNotFoundException("Procurement Method option with ID: " + model.getId() + " is not found");
+        }
+        return procurementMethodOptionRepository.save(model);
+    }
+
+    /**
+     * Updates multiple Procurement Method option models in a transactional manner.
+     *
+     * @param modelList                                     - List of ProcurementMethodOptionModel objects containing updated data
+     * @return                                              - List of updated ProcurementMethodOptionModel objects
+     * @throws ProcurementMethodOptionAlreadyExistException - if Procurement Method option already exists
+     */
+    @Transactional
+    public List<ProcurementMethodOptionModel> updateMany(List<ProcurementMethodOptionModel> modelList) {
+        if (modelList == null || modelList.isEmpty()) {
+            throw new IllegalArgumentException("Procurement Method option model list cannot be null or empty");
+        }
+        for (ProcurementMethodOptionModel model : modelList) {
+            if (model.getName() != null && procurementMethodOptionRepository.existsByNameAndIdNot(model.getName(), model.getId())) {
+                throw new ProcurementMethodOptionAlreadyExistException("Procurement Method option already exists with name: " + model.getName());
+            }
+            ProcurementMethodOptionModel existing = procurementMethodOptionRepository.findById(model.getId())
+                    .orElseThrow(() -> new ProcurementMethodNotFoundException("Procurement Method option not found with ID: " + model.getId()));
+            if (existing.getDeletedAt() != null) {
+                throw new ProcurementMethodNotFoundException("Procurement Method option with ID: " + model.getId() + " is not found");
+            }
+        }
+        return procurementMethodOptionRepository.saveAll(modelList);
+    }
+
+    /**
+     * Updates a single Procurement Method option model by ID, including deleted ones.
+     *
+     * @param model                                         - The ProcurementMethodOptionModel containing updated data
+     * @return                                              - The updated ProcurementMethodOptionModel
+     * @throws ProcurementMethodOptionAlreadyExistException - if Procurement Method option already exists
+     */
+    @Transactional
+    public ProcurementMethodOptionModel hardUpdate(ProcurementMethodOptionModel model) {
+        if (model.getName() != null && procurementMethodOptionRepository.existsByNameAndIdNot(model.getName(), model.getId())) {
+            throw new ProcurementMethodOptionAlreadyExistException("Procurement Method option already exists with name: " + model.getName());
+        }
+        return procurementMethodOptionRepository.save(model);
+    }
+
+    /**
+     * Updates multiple ProcurementMethodOption models by their IDs, including deleted ones.
+     *
+     * @param procurementMethodOptionModelList              - List of ProcurementMethodOptionModel objects containing updated data
+     * @return                                              - List of updated ProcurementMethodOptionModel objects
+     * @throws ProcurementMethodOptionAlreadyExistException - if any Procurement Method option already exists
+     */
+    @Transactional
+    public List<ProcurementMethodOptionModel> hardUpdateAll(List<ProcurementMethodOptionModel> procurementMethodOptionModelList) {
+        if (procurementMethodOptionModelList == null || procurementMethodOptionModelList.isEmpty()) {
+            throw new IllegalArgumentException("Procurement Method option model list cannot be null or empty");
+        }
+        for (ProcurementMethodOptionModel model : procurementMethodOptionModelList) {
+            if (model.getName() != null && procurementMethodOptionRepository.existsByNameAndIdNot(model.getName(), model.getId())) {
+                throw new ProcurementMethodOptionAlreadyExistException("Procurement Method option already exists with name: " + model.getName());
+            }
+        }
+        return procurementMethodOptionRepository.saveAll(procurementMethodOptionModelList);
+    }
+
+    /**
+     * Soft deletes a Procurement Method option by ID.
+     *
+     * @param id                                  - The ID of the Procurement Method option to soft delete
+     * @return                                    - The soft-deleted ProcurementMethodOptionModel
+     * @throws ProcurementMethodNotFoundException - if Procurement Method option ID is not found
+     */
+    @Transactional
+    public ProcurementMethodOptionModel softDelete(String id) {
         if (id == null) {
-            throw new IllegalArgumentException("Procurement Method Option ID cannot be null or empty");
-        }
-        if (model == null) {
-            throw new IllegalArgumentException("Procurement Method Option model cannot be null");
+            throw new NullPointerException("Procurement Method option ID cannot be null");
         }
         ProcurementMethodOptionModel procurementMethodOptionModel = procurementMethodOptionRepository.findById(id)
-                .orElseThrow(()-> new ProcurementMethodNotFoundException("Procurement Method Option not found with Id:" + id));
-
-        modelMapper.map(model, procurementMethodOptionModel);
-        procurementMethodOptionModel.setUpdatedAt(LocalDateTime.now());
-        return procurementMethodOptionRepository.save(procurementMethodOptionModel);
-    }
-
-
-    /**
-     * Updates multiple ProcurementMethodOptionModel models by their IDs
-     * @param procurementMethodOptionModels List of ProcurementMethodOptionModel objects containing updated data
-     * @return List of updated ProcurementMethodOptionModel objects
-     * @throws IllegalArgumentException if any Procurement Method Option ID is null
-     * @throws ProcurementMethodNotFoundException if any ProcurementMethodOption is not found
-     */
-    @Transactional
-    public List<ProcurementMethodOptionModel> hardUpdateAll(List<ProcurementMethodOptionModel> procurementMethodOptionModels){
-        if (procurementMethodOptionModels == null || procurementMethodOptionModels.isEmpty()) {
-            throw new IllegalArgumentException("Procurement Method model list cannot be null or empty");
-        }
-        List<ProcurementMethodOptionModel> updatedModels = new ArrayList<>();
-        for (ProcurementMethodOptionModel model: procurementMethodOptionModels){
-            if (model.getId() == null){
-                throw new IllegalArgumentException("ProcurementMethodOption id cannot be null on Hard update all");
-            }
-            ProcurementMethodOptionModel procurementMethodOptionModel = procurementMethodOptionRepository.findById(model.getId())
-                    .orElseThrow(()-> new ProcurementMethodNotFoundException("Procurement Method option not found with id:" + model.getId()));
-
-            modelMapper.map(model, procurementMethodOptionModel);
-            procurementMethodOptionModel.setUpdatedAt(LocalDateTime.now());
-            updatedModels.add(procurementMethodOptionRepository.save(procurementMethodOptionModel));
-        }
-        return updatedModels;
-    }
-
-    /**
-     * Soft deletes a procurement Method option by ID in a transactional manner.
-     *
-     * @param id The ID of the procurement Method option to soft delete
-     * @return The soft-deleted ProcurementMethodOptionModel
-     * @throws IllegalArgumentException if the procurement Method option ID is null
-     * @throws ProcurementMethodNotFoundException if the procurement Method option is not found
-     * @throws IllegalStateException if the procurement Method option is already deleted
-     */
-    @Transactional
-    public ProcurementMethodOptionModel softDeleteProcurementMethodOption(Long id){
-        if (id == null) {
-            throw new IllegalArgumentException("Procurement Method Option ID cannot be null or empty");
-        }
-        ProcurementMethodOptionModel procurementMethodOptionModel = procurementMethodOptionRepository.findById(id)
-                .orElseThrow(()-> new ProcurementMethodNotFoundException("Procurement Method option not found with id:" + id));
-        if (procurementMethodOptionModel.getDeletedAt() != null){
-            throw new IllegalStateException("Procurement Method option with id:" + id + "is already deleted");
+                .orElseThrow(() -> new ProcurementMethodNotFoundException("Procurement Method option not found with id: " + id));
+        if (procurementMethodOptionModel.getDeletedAt() != null) {
+            throw new ProcurementMethodNotFoundException("Procurement Method option not found with id: " + id);
         }
         procurementMethodOptionModel.setDeletedAt(LocalDateTime.now());
         return procurementMethodOptionRepository.save(procurementMethodOptionModel);
     }
+
     /**
-     * Hard deletes a Procurement Method option by ID
-     * @param id ID of the Procurement Method to hard delete
+     * Hard deletes a Procurement Method option by ID.
+     *
+     * @param id                                  - ID of the Procurement Method option to hard delete
+     * @throws NullPointerException               - if the Procurement Method option ID is null
+     * @throws ProcurementMethodNotFoundException - if the Procurement Method option is not found
      */
     @Transactional
-    public void hardDeleteProcurementMethodOption(Long id){
-        if (!procurementMethodOptionRepository.existsById(id)){
-            throw new ProcurementMethodNotFoundException("Procurement Method option not found with id:" + id);
+    public void hardDelete(String id) {
+        if (id == null) {
+            throw new NullPointerException("Procurement Method option ID cannot be null");
+        }
+        if (!procurementMethodOptionRepository.existsById(id)) {
+            throw new ProcurementMethodNotFoundException("Procurement Method option not found with id: " + id);
         }
         procurementMethodOptionRepository.deleteById(id);
     }
 
     /**
-     * Soft deletes multiple procurement Method option by their IDs.
+     * Soft deletes multiple Procurement Method options by their IDs.
      *
-     * @param ids List of procurement Method option IDs to be soft deleted
-     * @return List of soft deleted ProcurementMethodOption objects
-     * @throws ProcurementMethodNotFoundException if any procurement Method option IDs are not found
-     * @throws IllegalStateException if any procurement Method option is already deleted
+     * @param idList                              - List of Procurement Method option IDs to be soft deleted
+     * @return                                    - List of soft-deleted ProcurementMethodOption objects
+     * @throws ProcurementMethodNotFoundException - if any Procurement Method option IDs are not found
      */
     @Transactional
-    public List<ProcurementMethodOptionModel> softDeleteProcurementMethodOptions(List<Long> ids){
-        if (ids == null) {
-            throw new IllegalArgumentException("Procurement Method option IDs list cannot be null or empty");
+    public List<ProcurementMethodOptionModel> softDeleteMany(List<String> idList) {
+        List<ProcurementMethodOptionModel> procurementMethodOptionModels = procurementMethodOptionRepository.findAllById(idList);
+        if (procurementMethodOptionModels.isEmpty()) {
+            throw new ProcurementMethodNotFoundException("No Procurement Method options found with provided ID list: " + idList);
         }
-        List<ProcurementMethodOptionModel> procurementMethodOptionModels = procurementMethodOptionRepository.findAllById(ids);
-
-        List<Long> foundIds = new ArrayList<>();
-        for (ProcurementMethodOptionModel model: procurementMethodOptionModels){
-            foundIds.add(model.getId());
-        }
-        List<Long> missingIds = new ArrayList<>();
-        for (Long id: ids){
-            if(!foundIds.contains(id)){
-                missingIds.add(id);
-            }
-        }
-        if (!missingIds.isEmpty()){
-            throw new ProcurementMethodNotFoundException("Procurement Method option not Found with ids:" + missingIds);
-        }
-        for (ProcurementMethodOptionModel model: procurementMethodOptionModels){
-            if (model.getDeletedAt() != null){
-                throw new IllegalArgumentException("Procurement Method option with id:" + model.getId() + "is already deleted");
+        for (ProcurementMethodOptionModel model : procurementMethodOptionModels) {
+            if (model.getDeletedAt() != null) {
+                throw new ProcurementMethodNotFoundException("Procurement Method option not found with id: " + model.getId());
             }
             model.setDeletedAt(LocalDateTime.now());
         }
-        procurementMethodOptionRepository.saveAll(procurementMethodOptionModels);
-        return procurementMethodOptionModels;
+        return procurementMethodOptionRepository.saveAll(procurementMethodOptionModels);
     }
 
     /**
-     * Hard deletes multiple procurement Method options by IDs
-     * @param ids List of Procurement Method option IDs to hard delete
+     * Hard deletes multiple Procurement Method options by IDs.
+     *
+     * @param idList - List of Procurement Method option IDs to hard delete
      */
     @Transactional
-    public void hardDeleteProcurementMethodOptions(List<Long> ids){
-        List<ProcurementMethodOptionModel> procurementMethodOptionModels = procurementMethodOptionRepository.findAllById(ids);
+    public void hardDeleteMany(List<String> idList) {
+        if (idList == null || idList.isEmpty()) {
+            throw new NullPointerException("Procurement Method option ID list cannot be null or empty");
+        }
+        List<ProcurementMethodOptionModel> procurementMethodOptionModels = procurementMethodOptionRepository.findAllById(idList);
+        if (procurementMethodOptionModels.isEmpty()) {
+            throw new ProcurementMethodNotFoundException("No Procurement Method options found with provided ID list: " + idList);
+        }
+        procurementMethodOptionRepository.deleteAllById(idList);
+    }
 
-        List<Long> foundIds = new ArrayList<>();
-        for (ProcurementMethodOptionModel model: procurementMethodOptionModels){
-            foundIds.add(model.getId());
-        }
-        List<Long> missingIds = new ArrayList<>();
-        for (Long id: ids){
-            if (!foundIds.contains(id)){
-                missingIds.add(id);
-            }
-        }
-        if (!missingIds.isEmpty()){
-            throw new ProcurementMethodNotFoundException("Procurement type option not found with ids:" +missingIds);
-        }
-        procurementMethodOptionRepository.deleteAllById(ids);
+    /**
+     * Hard deletes all Procurement Method options, including soft-deleted ones.
+     */
+    @Transactional
+    public void hardDeleteAll() {
+        procurementMethodOptionRepository.deleteAll();
     }
 }

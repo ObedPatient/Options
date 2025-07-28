@@ -1,5 +1,5 @@
 /**
- * Entity representing a Scheme option in the 'plan' table 'scheme' field  in the database.
+ * Model representing a Scheme option in the 'plan' table 'scheme' field  in the database.
  */
 package rw.evolve.eprocurement.schemes_option.model;
 
@@ -14,7 +14,7 @@ import rw.evolve.eprocurement.schemes_option.model.base.GeneralTimestampBaseMode
 public class SchemeOptionModel extends GeneralTimestampBaseModel {
 
     @Id
-    @Column(name = "scheme_option_id")
+    @Column(name = "id")
     private String id;
 
     @EqualsAndHashCode.Include

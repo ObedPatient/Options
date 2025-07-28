@@ -17,8 +17,8 @@ public class GlobalExceptionHandler {
     /**
      * Handles any exception and returns a standardized error response.
      *
-     * @param e the exception thrown
-     * @return ResponseEntity with ErrorResponseDto as Object.
+     * @param e    - the exception thrown
+     * @return     - ResponseEntity with ErrorResponseDto as Object.
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handleGlobalExceptions(Exception e){

@@ -1,5 +1,5 @@
 /**
- * Entity representing a account type option in the database.
+ * Entity representing a procurement type in the 'plan' table 'procurement_type' field option in the database.
  */
 package rw.evolve.eprocurement.procurement_type_option.model;
 
@@ -13,18 +13,15 @@ import rw.evolve.eprocurement.procurement_type_option.model.base.GeneralTimestam
 @Table(name = "procurement_type_option_model")
 @EqualsAndHashCode(callSuper =false, onlyExplicitlyIncluded = true)
 public class ProcurementTypeOptionModel extends GeneralTimestampBaseModel {
-    /** Unique identifier for the Procurement type option. */
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "procurement_type_option_id")
-    @EqualsAndHashCode.Include
-    private Long id;
 
-    /** name of the type option */
+    @Id
+    @Column(name = "id")
+    private String id;
+
+    @EqualsAndHashCode.Include
     @Column(name = "name", nullable = false)
     private String name;
 
-    /** Brief description of the type option. */
-    @Column(name = "description", nullable = false)
+    @Column(name = "description")
     private String description;
 }

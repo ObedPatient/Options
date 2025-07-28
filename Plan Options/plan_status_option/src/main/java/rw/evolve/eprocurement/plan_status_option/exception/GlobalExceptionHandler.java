@@ -26,9 +26,8 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new ResponseMessageDto(
-                        "Internal Server Error: " + e.getMessage(),
+                         e.getMessage(),
                         "Error",
-                        500,
                         LocalDateTime.now()
                 ));
     }

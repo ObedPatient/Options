@@ -1,5 +1,5 @@
 /**
- * Entity representing a procurement method option in the database.
+ * Entity representing a procurement method int the 'plan' table 'procurement_method' field option in the database.
  */
 package rw.evolve.eprocurement.procurement_method_option.model;
 
@@ -14,18 +14,14 @@ import rw.evolve.eprocurement.procurement_method_option.model.base.GeneralTimest
 @EqualsAndHashCode(callSuper =false, onlyExplicitlyIncluded = true)
 public class ProcurementMethodOptionModel extends GeneralTimestampBaseModel {
 
-    /** Unique identifier for the Procurement method option. */
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "procurement_method_option_id")
-    @EqualsAndHashCode.Include
-    private Long id;
+    private String id;
 
-    /** name of the method option */
+    @EqualsAndHashCode.Include
     @Column(name = "name", nullable = false)
     private String name;
 
-    /** Brief description of the method option. */
     @Column(name = "description", nullable = false)
     private String description;
 }

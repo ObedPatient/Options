@@ -1,5 +1,5 @@
 /**
- * Entity representing a Prerequisites Activity File Type option in the database.
+ * Entity representing a Prerequisites Activity File Type option in the "plan" table "prerequisite activity" field in the database.
  */
 package rw.evolve.eprocurement.prerequisites_activity_type_options.model;
 
@@ -10,22 +10,19 @@ import rw.evolve.eprocurement.prerequisites_activity_type_options.model.base.Gen
 
 @Data
 @Entity
-@Table(name = "prerequisites_activity_file_type_option_model")
+@Table(name = "prerequisites_activity_file_type_option")
 @EqualsAndHashCode(callSuper =false, onlyExplicitlyIncluded = true)
 public class PrerequisitesActivityTypeOptionModel extends GeneralTimestampBaseModel {
 
-    /** Unique identifier for the Prerequisites Activity File Type option. */
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "prerequisites_activity_file_type_option_id")
-    @EqualsAndHashCode.Include
-    private Long id;
+    @Column(name = "id")
+    private String id;
 
-    /** name of the Prerequisites Activity File Type option */
+
     @Column(name = "name", nullable = false)
+    @EqualsAndHashCode.Include
     private String name;
 
-    /** Brief description of the Prerequisites Activity File Type option. */
-    @Column(name = "description", nullable = false)
+    @Column(name = "description")
     private String description;
 }

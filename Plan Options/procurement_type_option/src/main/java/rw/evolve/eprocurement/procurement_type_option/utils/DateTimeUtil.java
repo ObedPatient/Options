@@ -2,10 +2,9 @@
  * Utility class for generating timestamps in the e-procurement system.
  * Provides methods to obtain formatted timestamps for use in ID generation.
  */
-package rw.evolve.eprocurement.schemes_option.utils;
+package rw.evolve.eprocurement.procurement_type_option.utils;
 
 import java.time.LocalDateTime;
-
 
 public class DateTimeUtil {
 

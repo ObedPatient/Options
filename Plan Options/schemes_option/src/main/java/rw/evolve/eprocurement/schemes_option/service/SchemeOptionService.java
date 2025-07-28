@@ -1,12 +1,11 @@
 /**
- * Service for managing SchemeOption entities.
+ * Service for managing SchemeOption model.
  * Provides functionality to create, read, update, and delete SchemeOption data, supporting both
- * soft and hard deletion operations.
+ * soft and hard deletion operations through the corresponding repository.
  */
 package rw.evolve.eprocurement.schemes_option.service;
 
 import jakarta.transaction.Transactional;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import rw.evolve.eprocurement.schemes_option.exception.SchemeAlreadyExistException;
@@ -24,14 +23,12 @@ public class SchemeOptionService {
     @Autowired
     private SchemeOptionRepository schemeOptionRepository;
 
-    private final ModelMapper modelMapper = new ModelMapper();
-
     /**
-     * Creates a single Scheme option entity with a generated ID.
+     * Creates a single Scheme option model with a generated ID.
      *
-     * @param schemeOptionModel the SchemeOptionModel to be created
-     * @return the saved SchemeOption model
-     * @throws SchemeAlreadyExistException if a SchemeOption with the same name exists
+     * @param schemeOptionModel            - the SchemeOptionModel to be created
+     * @return                             - the saved SchemeOption model
+     * @throws SchemeAlreadyExistException - if a SchemeOption with the same name exists
      */
     @Transactional
     public SchemeOptionModel save(SchemeOptionModel schemeOptionModel) {
@@ -45,27 +42,23 @@ public class SchemeOptionService {
     }
 
     /**
-     * Creates multiple Scheme Option entities, each with a unique generated ID.
+     * Creates multiple Scheme Option model, each with a unique generated ID.
      *
-     * @param schemeOptionModelList - the list of Scheme option models to be created
-     * @return                      - a list of saved Scheme Option models
+     * @param schemeOptionModelList - the list of Scheme option model to be created
+     * @return                      - a list of saved Scheme Option model
      * @throws NullPointerException - if the input list is null
      */
     @Transactional
     public List<SchemeOptionModel> saveMany(List<SchemeOptionModel> schemeOptionModelList) {
-        if (schemeOptionModelList == null) {
-            throw new NullPointerException("Scheme option model list cannot be null");
+        if (schemeOptionModelList == null || schemeOptionModelList.isEmpty()) {
+            throw new IllegalArgumentException("Scheme option model list cannot be null or empty");
         }
-        List<SchemeOptionModel> savedSchemeModelList = new ArrayList<>();
         for (SchemeOptionModel schemeOptionModel : schemeOptionModelList) {
-            if (schemeOptionModel == null) {
-                throw new NullPointerException("Scheme option cannot be null");
-            }
             if (schemeOptionRepository.existsByName(schemeOptionModel.getName())) {
-                throw new SchemeAlreadyExistException("Scheme Option Already exists: " + schemeOptionModel.getName());
+                throw new SchemeAlreadyExistException("Scheme option already exists: " + schemeOptionModel.getName());
             }
         }
-        return schemeOptionRepository.saveAll(savedSchemeModelList);
+        return schemeOptionRepository.saveAll(schemeOptionModelList);
     }
 
     /**
@@ -75,6 +68,7 @@ public class SchemeOptionService {
      * @param id                       - the ID of the Scheme option to retrieve
      * @return                         - the Scheme option model if found and not deleted
      * @throws SchemeNotFoundException - if the Scheme option is not found
+     * @throws NullPointerException    - if Scheme option ID is null
      */
     @Transactional
     public SchemeOptionModel readOne(String id) {
@@ -90,16 +84,16 @@ public class SchemeOptionService {
     }
 
     /**
-     * Retrieves a list of SchemeOption objects based on the provided SchemeOption IDs.
+     * Retrieves a list of SchemeOption model list based on the provided SchemeOption ID.
      *
-     * @param schemeOptionIdList       - A list of SchemeOption IDs to retrieve
+     * @param schemeOptionIdList       - A list of SchemeOption ID to retrieve
      * @return                         - A list of SchemeOptionModel objects that are not marked as deleted
-     * @throws SchemeNotFoundException - if a SchemeOption with the given ID is not found
+     * @throws NullPointerException    - if a SchemeOption ID list is null
      */
     @Transactional
     public List<SchemeOptionModel> readMany(List<String> schemeOptionIdList) {
         if (schemeOptionIdList == null || schemeOptionIdList.isEmpty()) {
-            throw new NullPointerException("Scheme option IDs list cannot be null");
+            throw new NullPointerException("Scheme option ID list cannot be null");
         }
         List<SchemeOptionModel> modelList = new ArrayList<>();
         for (String id : schemeOptionIdList) {
@@ -118,9 +112,9 @@ public class SchemeOptionService {
     }
 
     /**
-     * Retrieve all Scheme Options that are not marked as deleted
+     * Retrieve all Scheme options that are not marked as deleted
      *
-     * @return         - a List of Scheme option objects where deletedAt is null
+     * @return         - a List of Scheme option model where deletedAt is null
      */
     @Transactional
     public List<SchemeOptionModel> readAll() {
@@ -128,9 +122,9 @@ public class SchemeOptionService {
     }
 
     /**
-     * Retrieves all Scheme Option models, including those marked as deleted.
+     * Retrieves all Scheme Option model, including those marked as deleted.
      *
-     * @return                         - A list of all SchemeOptionModel objects
+     * @return            - A list of all SchemeOptionModel objects
      */
     @Transactional
     public List<SchemeOptionModel> hardReadAll() {
@@ -140,33 +134,46 @@ public class SchemeOptionService {
     /**
      * Updates a single Scheme Option model identified by the provided ID.
      *
-     * @param model                    - The SchemeOptionModel containing updated data
-     * @return                         - The updated SchemeOptionModel
-     * @throws SchemeNotFoundException - if the SchemeOptionModel is not found or is marked as deleted
+     * @param model                          - The SchemeOptionModel containing updated data
+     * @return                               - The updated SchemeOptionModel
+     * @throws SchemeAlreadyExistException   - if scheme option already exist
      */
     @Transactional
     public SchemeOptionModel updateOne(SchemeOptionModel model) {
+        SchemeOptionModel existing = schemeOptionRepository.findById(model.getId())
+                .orElseThrow(() -> new SchemeNotFoundException("Scheme option not found with ID: " + model.getId()));
+        if (existing.getDeletedAt() != null) {
+            throw new SchemeNotFoundException("Scheme option with ID: " + model.getId() + " is not found");
+        }
         return schemeOptionRepository.save(model);
     }
 
+
     /**
-     * Updates multiple SchemeOption models in a transactional manner.
+     * Updates multiple scheme option model in a transactional manner.
      *
-     * @param modelList - List of SchemeOptionModel objects containing updated data
-     * @return          - List of updated SchemeOptionModel objects
+     * @param modelList                      - List of SchemeOptionModel objects containing updated data
+     * @return                               - List of updated SchemeOptionModel objects
+     * @throws SchemeAlreadyExistException   - if scheme option already exist
      */
     @Transactional
     public List<SchemeOptionModel> updateMany(List<SchemeOptionModel> modelList) {
+        for (SchemeOptionModel model: modelList){
+            SchemeOptionModel existing = schemeOptionRepository.findById(model.getId())
+                    .orElseThrow(() -> new SchemeNotFoundException("Scheme option not found with ID: " + model.getId()));
+            if (existing.getDeletedAt() != null) {
+                throw new SchemeNotFoundException("Scheme option with ID: " + model.getId() + " is not found");
+            }
+        }
         return schemeOptionRepository.saveAll(modelList);
     }
 
     /**
      * Updates a single Scheme option model by ID, including deleted ones.
      *
-     * @param model                    - The SchemeOptionModel containing updated data
-     * @return                         - The updated SchemeOptionModel
-     * @throws NullPointerException    - if the Scheme option ID or model is null
-     * @throws SchemeNotFoundException - if the Scheme option is not found
+     * @param model                          - The SchemeOptionModel containing updated data
+     * @return                               - The updated SchemeOptionModel
+     * @throws SchemeAlreadyExistException   - if scheme option already exist
      */
     @Transactional
     public SchemeOptionModel hardUpdate(SchemeOptionModel model) {
@@ -174,10 +181,10 @@ public class SchemeOptionService {
     }
 
     /**
-     * Updates multiple SchemeOption models by their IDs, including deleted ones.
+     * Updates multiple SchemeOption modelList by their IDs, including deleted ones.
      *
-     * @param schemeOptionModelList    - List of SchemeOptionModel objects containing updated data
-     * @return                         - List of updated SchemeOptionModel objects
+     * @param schemeOptionModelList        - List of SchemeOptionModel objects containing updated data
+     * @return                             - List of updated SchemeOptionModel objects
      */
     @Transactional
     public List<SchemeOptionModel> hardUpdateAll(List<SchemeOptionModel> schemeOptionModelList) {
@@ -185,9 +192,10 @@ public class SchemeOptionService {
     }
 
     /**
-     * Soft deletes a Scheme option by ID in a transactional manner.
+     * Soft deletes a Scheme option by ID.
      *
-     * @return   - The soft-deleted SchemeOptionModel
+     * @return                         - The soft-deleted SchemeOptionModel
+     * @throws SchemeNotFoundException - if scheme option id is not found
      */
     @Transactional
     public SchemeOptionModel softDelete(String id) {
@@ -220,38 +228,27 @@ public class SchemeOptionService {
      *
      * @param idList                   - List of Scheme option IDs to be soft deleted
      * @return                         - List of soft-deleted SchemeOption objects
-     * @throws NullPointerException    - if any Scheme option ID is null
-     * @throws SchemeNotFoundException - if any Scheme option IDs are not found
+     * @throws SchemeNotFoundException - if any Scheme option ID are not found
      */
     @Transactional
     public List<SchemeOptionModel> softDeleteMany(List<String> idList) {
-        if (idList == null || idList.isEmpty()) {
-            throw new NullPointerException("Scheme option IDs list cannot be null or empty");
+        List<SchemeOptionModel> schemeOptionModelList = schemeOptionRepository.findAllById(idList);
+        if (schemeOptionModelList.isEmpty()) {
+            throw new SchemeNotFoundException("No scheme options found with provided IDList: " + idList);
         }
-        if (idList.contains(null)) {
-            throw new NullPointerException("Scheme option ID cannot be null");
-        }
-        List<SchemeOptionModel> schemeOptionModels = schemeOptionRepository.findAllById(idList);
-        if (schemeOptionModels.isEmpty()) {
-            throw new SchemeNotFoundException("No scheme options found with provided IDs: " + idList);
-        }
-        for (SchemeOptionModel model : schemeOptionModels) {
+        for (SchemeOptionModel model : schemeOptionModelList) {
             model.setDeletedAt(LocalDateTime.now());
         }
-        return schemeOptionRepository.saveAll(schemeOptionModels);
+        return schemeOptionRepository.saveAll(schemeOptionModelList);
     }
 
     /**
      * Hard deletes multiple Scheme options by IDs.
      *
-     * @param  idList                  - List of Scheme option IDs to hard delete
-     * @throws NullPointerException    - if the Scheme option IDs list is null or empty
+     * @param  idList     - List of Scheme option IDs to hard delete
      */
     @Transactional
     public void hardDeleteMany(List<String> idList) {
-        if (idList == null || idList.isEmpty()) {
-            throw new NullPointerException("Scheme option IDs list cannot be null or empty");
-        }
         schemeOptionRepository.deleteAllById(idList);
     }
 

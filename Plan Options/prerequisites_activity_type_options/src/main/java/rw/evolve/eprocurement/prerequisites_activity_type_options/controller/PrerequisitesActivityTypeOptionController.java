@@ -1,30 +1,30 @@
 /**
- * REST API controller for managing Prerequisites Activity Type options
- * Provides endpoints for creating, retrieving, deleting and updating Prerequisites Activity Type option data.
+ * REST API controller for managing Prerequisites Activity Type options.
+ * Handles CRUD operations for Prerequisites Activity Type option data with soft and hard delete capabilities.
  */
-package rw.evolve.eprocurement.prerequisites_activity_type_options.controller;
+        package rw.evolve.eprocurement.prerequisites_activity_type_options.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import rw.evolve.eprocurement.prerequisites_activity_type_options.dto.PrerequisitesActivityFileTypeOptionDto;
+import rw.evolve.eprocurement.prerequisites_activity_type_options.dto.PrerequisitesActivityTypeOptionDto;
 import rw.evolve.eprocurement.prerequisites_activity_type_options.dto.ResponseMessageDto;
 import rw.evolve.eprocurement.prerequisites_activity_type_options.model.PrerequisitesActivityTypeOptionModel;
 import rw.evolve.eprocurement.prerequisites_activity_type_options.service.PrerequisitesActivityTypeOptionService;
+import rw.evolve.eprocurement.prerequisites_activity_type_options.utils.PrerequisiteActivityTypeOptionIdGenerator;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("api/prerequisites_activity_type_option")
-@Tag(name = "Prerequisites Activity Type Option Api")
+@Tag(name = "Prerequisites Activity Type Option API")
 public class PrerequisitesActivityTypeOptionController {
 
     @Autowired
@@ -33,367 +33,277 @@ public class PrerequisitesActivityTypeOptionController {
     private final ModelMapper modelMapper = new ModelMapper();
 
     /**
-     * Converts a PrerequisitesActivityTypeOptionModel to PrerequisitesActivityTypeOptionDto.
-     * @param model The PrerequisitesActivityTypeOptionModel to convert.
-     * @return The converted PrerequisitesActivityFileTypeOptionDto.
+     * Converts PrerequisitesActivityTypeOptionModel to PrerequisitesActivityTypeOptionDto.
+     * @param model - PrerequisitesActivityTypeOptionModel to convert
+     * @return      - Converted PrerequisitesActivityTypeOptionDto
      */
-    private PrerequisitesActivityFileTypeOptionDto convertToDto(PrerequisitesActivityTypeOptionModel model){
-        return modelMapper.map(model, PrerequisitesActivityFileTypeOptionDto.class);
+    private PrerequisitesActivityTypeOptionDto convertToDto(PrerequisitesActivityTypeOptionModel model) {
+        return modelMapper.map(model, PrerequisitesActivityTypeOptionDto.class);
     }
 
     /**
-     * Converts a PrerequisitesActivityFileTypeOptionDto to PrerequisitesActivityTypeOptionModel.
-     * @param dto The PrerequisitesActivityFileTypeOptionDto to convert.
-     * @return The converted PrerequisitesActivityTypeOptionModel.
+     * Converts PrerequisitesActivityTypeOptionDto to PrerequisitesActivityTypeOptionModel, skipping ID mapping.
+     * @param prerequisitesActivityTypeOptionDto - PrerequisitesActivityTypeOptionDto to convert
+     * @return                                   - Converted PrerequisitesActivityTypeOptionModel
      */
-    private PrerequisitesActivityTypeOptionModel convertToModel(PrerequisitesActivityFileTypeOptionDto dto){
-        return modelMapper.map(dto, PrerequisitesActivityTypeOptionModel.class);
+    private PrerequisitesActivityTypeOptionModel convertToModel(PrerequisitesActivityTypeOptionDto prerequisitesActivityTypeOptionDto) {
+        modelMapper.typeMap(PrerequisitesActivityTypeOptionDto.class, PrerequisitesActivityTypeOptionModel.class)
+                .addMappings(mapper -> mapper.skip(PrerequisitesActivityTypeOptionModel::setId));
+        return modelMapper.map(prerequisitesActivityTypeOptionDto, PrerequisitesActivityTypeOptionModel.class);
     }
 
     /**
-     * Creates a single Prerequisites Activity Type Option
-     * @param prerequisitesActivityFileTypeOptionDto DTO containing Prerequisites Activity Type Option data
-     * @return ResponseEntity containing a Map with the created PrerequisitesActivityTypeOptionDto and a ResponseMessageDto
+     * Creates a single Prerequisites Activity Type option.
+     * @param prerequisitesActivityTypeOptionDto - Prerequisites Activity Type option data
+     * @return                                   - Response with success message
      */
-    @Operation(summary = "Create one Prerequisites Activity Type Option Api endpoint")
+    @Operation(summary = "Create a single Prerequisites Activity Type option")
     @PostMapping("/create/one")
-    public ResponseEntity<Map<String, Object>> createPrerequisitesActivityTypeOption(@Valid @RequestBody PrerequisitesActivityFileTypeOptionDto prerequisitesActivityFileTypeOptionDto){
-        PrerequisitesActivityTypeOptionModel prerequisitesActivityTypeOptionModel = convertToModel(prerequisitesActivityFileTypeOptionDto);
-        PrerequisitesActivityTypeOptionModel createdPrerequisitesActivityTypeOptionModel = prerequisitesActivityTypeOptionService.createPrerequisitesActivityTypeOption(prerequisitesActivityTypeOptionModel);
-        PrerequisitesActivityFileTypeOptionDto createdPrerequisitesActivityTypeOptionDto = convertToDto(createdPrerequisitesActivityTypeOptionModel);
+    public ResponseEntity<Object> save(@Valid @RequestBody PrerequisitesActivityTypeOptionDto prerequisitesActivityTypeOptionDto) {
+        PrerequisitesActivityTypeOptionModel prerequisitesActivityTypeOptionModel = convertToModel(prerequisitesActivityTypeOptionDto);
+        prerequisitesActivityTypeOptionModel.setId(PrerequisiteActivityTypeOptionIdGenerator.generateId());
+        prerequisitesActivityTypeOptionService.save(prerequisitesActivityTypeOptionModel);
         ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Prerequisites Activity Type Option created successfully",
-                "OK",
-                201,
+                "Prerequisites activity type option created successfully",
+                HttpStatus.OK + "",
                 LocalDateTime.now()
         );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Prerequisites Activity Type Option", createdPrerequisitesActivityTypeOptionDto);
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(responseMessageDto, HttpStatus.OK);
     }
 
     /**
-     * Creates multiple Prerequisites Activity Type Options
-     * @param prerequisitesActivityFileTypeOptionDtos List of Prerequisites Activity Type Option DTOs
-     * @return ResponseEntity containing a Map with the created list of PrerequisitesActivityTypeOptionDto and a ResponseMessageDto
+     * Creates multiple Prerequisites Activity Type options.
+     * @param prerequisitesActivityTypeOptionDtoList - List of Prerequisites Activity Type option data
+     * @return                                       - Response with success message
      */
-    @Operation(summary = "Create Many Prerequisites Activity Type Option Api endpoint")
+    @Operation(summary = "Create multiple Prerequisites Activity Type options")
     @PostMapping("/create/many")
-    public ResponseEntity<Map<String, Object>> createPrerequisitesActivityTypeOptions(@Valid @RequestBody List<PrerequisitesActivityFileTypeOptionDto> prerequisitesActivityFileTypeOptionDtos){
-        List<PrerequisitesActivityTypeOptionModel> prerequisitesActivityTypeOptionModels = new ArrayList<>();
-        for (PrerequisitesActivityFileTypeOptionDto dto: prerequisitesActivityFileTypeOptionDtos){
-            prerequisitesActivityTypeOptionModels.add(convertToModel(dto));
+    public ResponseEntity<Object> saveMany(@Valid @RequestBody List<PrerequisitesActivityTypeOptionDto> prerequisitesActivityTypeOptionDtoList) {
+        List<PrerequisitesActivityTypeOptionModel> prerequisitesActivityTypeOptionModelList = new ArrayList<>();
+        for (PrerequisitesActivityTypeOptionDto prerequisitesActivityTypeOptionDto : prerequisitesActivityTypeOptionDtoList) {
+            PrerequisitesActivityTypeOptionModel model = convertToModel(prerequisitesActivityTypeOptionDto);
+            model.setId(PrerequisiteActivityTypeOptionIdGenerator.generateId());
+            prerequisitesActivityTypeOptionModelList.add(model);
         }
-        List<PrerequisitesActivityTypeOptionModel> createdModels = prerequisitesActivityTypeOptionService.createPrerequisitesActivityTypeOptions(prerequisitesActivityTypeOptionModels);
-        List<PrerequisitesActivityFileTypeOptionDto> createdPrerequisitesActivityTypeDtos = new ArrayList<>();
-        for (PrerequisitesActivityTypeOptionModel model: createdModels){
-            createdPrerequisitesActivityTypeDtos.add(convertToDto(model));
-        }
-        ResponseMessageDto responseMessage = new ResponseMessageDto(
-                "Prerequisites Activity Type Options Created Successfully",
-                "OK",
-                201,
+        prerequisitesActivityTypeOptionService.saveMany(prerequisitesActivityTypeOptionModelList);
+        ResponseMessageDto responseMessageDto = new ResponseMessageDto(
+                "Prerequisites activity type options created successfully",
+                HttpStatus.OK + "",
                 LocalDateTime.now()
         );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Prerequisites Activity Type Options", createdPrerequisitesActivityTypeDtos);
-        response.put("responseMessage", responseMessage);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(responseMessageDto, HttpStatus.OK);
     }
 
     /**
-     * Retrieves a Prerequisites Activity Type Option by its ID, excluding soft-deleted options.
-     * @param id The ID of the Prerequisites Activity Type Option to retrieve, provided as a request parameter.
-     * @return ResponseEntity containing a Map with the PrerequisitesActivityFileTypeOptionDto and a ResponseMessageDto
+     * Retrieves a Prerequisites Activity Type option by ID (excludes soft-deleted).
+     * @param id - Prerequisites Activity Type option ID
+     * @return   - Response with Prerequisites Activity Type option data
      */
-    @Operation(summary = "Get One Prerequisites Activity Type Option API")
-    @GetMapping("/read/one/{id}")
-    public ResponseEntity<Map<String, Object>> readOne(@RequestParam("PrerequisitesActivityTypeOptionId") Long id){
+    @Operation(summary = "Get a single Prerequisites Activity Type option by ID")
+    @GetMapping("/read/one")
+    public ResponseEntity<Object> readOne(@RequestParam("id") String id) {
         PrerequisitesActivityTypeOptionModel model = prerequisitesActivityTypeOptionService.readOne(id);
-        PrerequisitesActivityFileTypeOptionDto dto = convertToDto(model);
-        ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Prerequisites Activity Type Option Retrieved Successfully",
-                "OK",
-                200,
-                LocalDateTime.now()
-        );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Prerequisites Activity Type Option", dto);
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+        PrerequisitesActivityTypeOptionDto prerequisitesActivityTypeOptionDto = convertToDto(model);
+        return new ResponseEntity<>(prerequisitesActivityTypeOptionDto, HttpStatus.OK);
     }
 
     /**
-     * Retrieves all non-deleted Prerequisites Activity Type Options.
-     * @return ResponseEntity containing a Map with a list of PrerequisitesActivityTypeOptionDto and a ResponseMessageDto
+     * Retrieves all non-deleted Prerequisites Activity Type options.
+     * @return - Response with list of Prerequisites Activity Type option data
      */
-    @Operation(summary = "Read all Prerequisites Activity Type Option Api endpoint")
+    @Operation(summary = "Get all available Prerequisites Activity Type options")
     @GetMapping("/read/all")
-    public ResponseEntity<Map<String, Object>> readAll(){
-        List<PrerequisitesActivityTypeOptionModel> prerequisitesActivityTypeOptionModels = prerequisitesActivityTypeOptionService.readAll();
-        List<PrerequisitesActivityFileTypeOptionDto> prerequisitesActivityFileTypeOptionDtos = new ArrayList<>();
-        for (PrerequisitesActivityTypeOptionModel prerequisitesActivityTypeOptionModel: prerequisitesActivityTypeOptionModels){
-            prerequisitesActivityFileTypeOptionDtos.add(convertToDto(prerequisitesActivityTypeOptionModel));
+    public ResponseEntity<Object> readAll() {
+        List<PrerequisitesActivityTypeOptionModel> prerequisitesActivityTypeOptionModelList = prerequisitesActivityTypeOptionService.readAll();
+        List<PrerequisitesActivityTypeOptionDto> prerequisitesActivityTypeOptionDtoList = new ArrayList<>();
+        for (PrerequisitesActivityTypeOptionModel prerequisitesActivityTypeOptionModel : prerequisitesActivityTypeOptionModelList) {
+            prerequisitesActivityTypeOptionDtoList.add(convertToDto(prerequisitesActivityTypeOptionModel));
         }
-        ResponseMessageDto responseMessage = new ResponseMessageDto(
-                "Prerequisites Activity Type Options Retrieved Successfully",
-                "OK",
-                200,
-                LocalDateTime.now()
-        );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Prerequisites Activity Type Options", prerequisitesActivityFileTypeOptionDtos);
-        response.put("responseMessage", responseMessage);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(prerequisitesActivityTypeOptionDtoList, HttpStatus.OK);
     }
 
     /**
-     * Retrieves all Prerequisites Activity Type Options, including soft-deleted ones.
-     * @return ResponseEntity containing a Map with a list of PrerequisitesActivityFileTypeOptionDto and a ResponseMessageDto
+     * Retrieves all Prerequisites Activity Type options, including soft-deleted.
+     * @return - Response with list of all Prerequisites Activity Type option data
      */
-    @Operation(summary = "Hard read all Prerequisites Activity Type Option Api endpoint")
+    @Operation(summary = "Get all Prerequisites Activity Type options, including soft-deleted")
     @GetMapping("/read/hard/all")
-    public ResponseEntity<Map<String, Object>> hardReadAll(){
-        List<PrerequisitesActivityTypeOptionModel> models = prerequisitesActivityTypeOptionService.hardReadAll();
-        List<PrerequisitesActivityFileTypeOptionDto> dtos = new ArrayList<>();
-        for (PrerequisitesActivityTypeOptionModel model: models){
-            dtos.add(convertToDto(model));
+    public ResponseEntity<Object> hardReadAll() {
+        List<PrerequisitesActivityTypeOptionModel> modelList = prerequisitesActivityTypeOptionService.hardReadAll();
+        List<PrerequisitesActivityTypeOptionDto> prerequisitesActivityTypeOptionDtoList = new ArrayList<>();
+        for (PrerequisitesActivityTypeOptionModel model : modelList) {
+            prerequisitesActivityTypeOptionDtoList.add(convertToDto(model));
         }
-        ResponseMessageDto responseMessage = new ResponseMessageDto(
-                "All Prerequisites Activity Type Options Retrieved Successfully",
-                "OK",
-                200,
-                LocalDateTime.now()
-        );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Prerequisites Activity Type Options", dtos);
-        response.put("responseMessage", responseMessage);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(prerequisitesActivityTypeOptionDtoList, HttpStatus.OK);
     }
 
     /**
-     * Retrieves multiple Prerequisites Activity Type Options by their IDs, excluding soft-deleted records.
-     * @param ids List of Prerequisites Activity Type Option IDs
-     * @return ResponseEntity containing a Map with a list of PrerequisitesActivityFileTypeOptionDto and a ResponseMessageDto
+     * Retrieves multiple Prerequisites Activity Type options by ID (excludes soft-deleted).
+     * @param idList - List of Prerequisites Activity Type option IDs
+     * @return       - Response with list of Prerequisites Activity Type option data
      */
-    @Operation(summary = "Retrieve multiple Prerequisites Activity Type Options with their Ids Api")
-    @PostMapping("read/many")
-    public ResponseEntity<Map<String, Object>> readMany(@Valid @RequestBody List<Long> ids){
-        List<PrerequisitesActivityTypeOptionModel> prerequisitesActivityTypeOptionModels = prerequisitesActivityTypeOptionService.readMany(ids);
-        List<PrerequisitesActivityFileTypeOptionDto> prerequisitesActivityFileTypeOptionDtos = new ArrayList<>();
-        for (PrerequisitesActivityTypeOptionModel model: prerequisitesActivityTypeOptionModels){
-            prerequisitesActivityFileTypeOptionDtos.add(convertToDto(model));
+    @Operation(summary = "Get multiple Prerequisites Activity Type options by ID")
+    @PostMapping("/read/many")
+    public ResponseEntity<Object> readMany(@Valid @RequestParam("id_list") List<String> idList) {
+        List<PrerequisitesActivityTypeOptionModel> prerequisitesActivityTypeOptionModelList = prerequisitesActivityTypeOptionService.readMany(idList);
+        List<PrerequisitesActivityTypeOptionDto> prerequisitesActivityTypeOptionDtoList = new ArrayList<>();
+        for (PrerequisitesActivityTypeOptionModel model : prerequisitesActivityTypeOptionModelList) {
+            prerequisitesActivityTypeOptionDtoList.add(convertToDto(model));
         }
-        ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Prerequisites Activity Type Options Retrieved Successfully",
-                "OK",
-                200,
-                LocalDateTime.now()
-        );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Prerequisites Activity Type Options", prerequisitesActivityFileTypeOptionDtos);
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(prerequisitesActivityTypeOptionDtoList, HttpStatus.OK);
     }
 
     /**
-     * Updates a Prerequisites Activity Type Option by its ID, excluding soft-deleted records.
-     * @param id The ID of the Prerequisites Activity Type Option to update
-     * @param prerequisitesActivityFileTypeOptionDto The updated Prerequisites Activity Type Option data
-     * @return ResponseEntity containing a Map with the updated PrerequisitesActivityFileTypeOptionDto and a ResponseMessageDto
+     * Updates a Prerequisites Activity Type option by ID (excludes soft-deleted).
+     * @param prerequisitesActivityTypeOptionDto - Updated Prerequisites Activity Type option data
+     * @return                                   - Response with updated Prerequisites Activity Type option data
      */
-    @Operation(summary = "Update One Prerequisites Activity Type Option Api")
-    @PutMapping("/update/one/{id}")
-    public ResponseEntity<Map<String, Object>> updateOne(@Valid @RequestParam Long id,
-                                                         @Valid @RequestBody PrerequisitesActivityFileTypeOptionDto prerequisitesActivityFileTypeOptionDto){
-        PrerequisitesActivityTypeOptionModel prerequisitesActivityTypeOptionModel = prerequisitesActivityTypeOptionService.updateOne(id, convertToModel(prerequisitesActivityFileTypeOptionDto));
-        PrerequisitesActivityFileTypeOptionDto dto = convertToDto(prerequisitesActivityTypeOptionModel);
-        ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Prerequisites Activity Type Option Updated Successfully",
-                "OK",
-                200,
-                LocalDateTime.now()
-        );
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("Prerequisites Activity Type Option", dto);
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+    @Operation(summary = "Update a single Prerequisites Activity Type option by ID")
+    @PutMapping("/update/one")
+    public ResponseEntity<Object> updateOne(@Valid @RequestBody PrerequisitesActivityTypeOptionDto prerequisitesActivityTypeOptionDto) {
+        String modelId = prerequisitesActivityTypeOptionDto.getId();
+        PrerequisitesActivityTypeOptionModel savedModel = prerequisitesActivityTypeOptionService.readOne(modelId);
+        savedModel.setName(prerequisitesActivityTypeOptionDto.getName());
+        savedModel.setDescription(prerequisitesActivityTypeOptionDto.getDescription());
+        prerequisitesActivityTypeOptionService.updateOne(savedModel);
+        PrerequisitesActivityTypeOptionDto updatedDto = convertToDto(savedModel);
+        return new ResponseEntity<>(updatedDto, HttpStatus.OK);
     }
 
     /**
-     * Updates multiple Prerequisites Activity Type Options based on the provided list of Prerequisites Activity Type Option DTOs.
-     * Excludes soft-deleted records from updates.
-     *
-     * @param prerequisitesActivityFileTypeOptionDtos List of PrerequisitesActivityTypeOptionDto objects containing updated data
-     * @return ResponseEntity containing a Map with the list of updated PrerequisitesActivityFileTypeOptionDtos and ResponseMessageDto
+     * Updates multiple Prerequisites Activity Type options (excludes soft-deleted).
+     * @param prerequisitesActivityTypeOptionDtoList - List of updated Prerequisites Activity Type option data
+     * @return                                       - Response with list of updated Prerequisites Activity Type option data
      */
-    @Operation(summary = "Update multiple Prerequisites Activity Type Options Api endpoint")
+    @Operation(summary = "Update multiple Prerequisites Activity Type options")
     @PutMapping("/update/many")
-    public ResponseEntity<Map<String, Object>> updateMany(@Valid @RequestBody List<PrerequisitesActivityFileTypeOptionDto> prerequisitesActivityFileTypeOptionDtos){
-        List<PrerequisitesActivityTypeOptionModel> inputModels = new ArrayList<>();
-        for (PrerequisitesActivityFileTypeOptionDto dto: prerequisitesActivityFileTypeOptionDtos){
-            inputModels.add(convertToModel(dto));
+    public ResponseEntity<Object> updateMany(@Valid @RequestBody List<PrerequisitesActivityTypeOptionDto> prerequisitesActivityTypeOptionDtoList) {
+        List<PrerequisitesActivityTypeOptionModel> inputModelList = new ArrayList<>();
+        for (PrerequisitesActivityTypeOptionDto prerequisitesActivityTypeOptionDto : prerequisitesActivityTypeOptionDtoList) {
+            inputModelList.add(convertToModel(prerequisitesActivityTypeOptionDto));
         }
-        List<PrerequisitesActivityTypeOptionModel> updatedModels = prerequisitesActivityTypeOptionService.updateMany(inputModels);
-        List<PrerequisitesActivityFileTypeOptionDto> dtos = new ArrayList<>();
-        for (PrerequisitesActivityTypeOptionModel model: updatedModels){
-            dtos.add(convertToDto(model));
+        List<PrerequisitesActivityTypeOptionModel> updatedModelList = prerequisitesActivityTypeOptionService.updateMany(inputModelList);
+        List<PrerequisitesActivityTypeOptionDto> updatedDtoList = new ArrayList<>();
+        for (PrerequisitesActivityTypeOptionModel model : updatedModelList) {
+            updatedDtoList.add(convertToDto(model));
         }
-        ResponseMessageDto responseMessage = new ResponseMessageDto(
-                "Prerequisites Activity Type Options Updated Successfully",
-                "OK",
-                200,
-                LocalDateTime.now()
-        );
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("Prerequisites Activity Type Options", dtos);
-        response.put("responseMessage", responseMessage);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(updatedDtoList, HttpStatus.OK);
     }
 
     /**
-     * Updates a Prerequisites Activity Type Option by its ID, including soft-deleted records.
-     *
-     * @param id The ID of the Prerequisites Activity Type Option to update.
-     * @param prerequisitesActivityFileTypeOptionDto The updated Prerequisites Activity Type Option data.
-     * @return ResponseEntity containing a Map with the updated PrerequisitesActivityFileTypeOptionDto and ResponseMessageDto
+     * Updates a Prerequisites Activity Type option by ID, including soft-deleted.
+     * @param prerequisitesActivityTypeOptionDto - Updated Prerequisites Activity Type option data
+     * @return                                   - Response with updated Prerequisites Activity Type option data
      */
-    @Operation(summary = "Hard update Prerequisites Activity Type Option by Id Api endpoint")
-    @PutMapping("/update/hard/one/{id}")
-    public ResponseEntity<Map<String, Object>> hardUpdate(@RequestParam Long id, @Valid @RequestBody PrerequisitesActivityFileTypeOptionDto prerequisitesActivityFileTypeOptionDto){
-        PrerequisitesActivityTypeOptionModel prerequisitesActivityTypeOptionModel = prerequisitesActivityTypeOptionService.hardUpdateOne(id, convertToModel(prerequisitesActivityFileTypeOptionDto));
-        PrerequisitesActivityFileTypeOptionDto dto = convertToDto(prerequisitesActivityTypeOptionModel);
-        ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Prerequisites Activity Type Option Updated Successfully",
-                "OK",
-                200,
-                LocalDateTime.now()
-        );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Prerequisites Activity Type Option", dto);
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+    @Operation(summary = "Update a single Prerequisites Activity Type option by ID, including soft-deleted")
+    @PutMapping("/update/hard/one")
+    public ResponseEntity<Object> hardUpdate(@Valid @RequestBody PrerequisitesActivityTypeOptionDto prerequisitesActivityTypeOptionDto) {
+        PrerequisitesActivityTypeOptionModel prerequisitesActivityTypeOptionModel = prerequisitesActivityTypeOptionService.hardUpdate(convertToModel(prerequisitesActivityTypeOptionDto));
+        PrerequisitesActivityTypeOptionDto updatedDto = convertToDto(prerequisitesActivityTypeOptionModel);
+        return new ResponseEntity<>(updatedDto, HttpStatus.OK);
     }
 
     /**
-     * Updates all Prerequisites Activity Type Options, including soft-deleted records, based on their IDs.
-     *
-     * @param prerequisitesActivityFileTypeOptionDtos The list of updated Prerequisites Activity Type Option data.
-     * @return ResponseEntity containing a Map with the list of updated PrerequisitesActivityFileTypeOptionDtos and ResponseMessageDto
+     * Updates all Prerequisites Activity Type options, including soft-deleted.
+     * @param prerequisitesActivityTypeOptionDtoList - List of updated Prerequisites Activity Type option data
+     * @return                                       - Response with list of updated Prerequisites Activity Type option data
      */
-    @Operation(summary = "Hard update all Prerequisites Activity Type Options")
+    @Operation(summary = "Update all Prerequisites Activity Type options, including soft-deleted")
     @PutMapping("/update/hard/all")
-    public ResponseEntity<Map<String, Object>> hardUpdateAll(@Valid @RequestBody List<PrerequisitesActivityFileTypeOptionDto> prerequisitesActivityFileTypeOptionDtos){
-        List<PrerequisitesActivityTypeOptionModel> inputModels = new ArrayList<>();
-        for (PrerequisitesActivityFileTypeOptionDto dto: prerequisitesActivityFileTypeOptionDtos){
-            inputModels.add(convertToModel(dto));
+    public ResponseEntity<Object> hardUpdateAll(@Valid @RequestBody List<PrerequisitesActivityTypeOptionDto> prerequisitesActivityTypeOptionDtoList) {
+        List<PrerequisitesActivityTypeOptionModel> inputModelList = new ArrayList<>();
+        for (PrerequisitesActivityTypeOptionDto prerequisitesActivityTypeOptionDto : prerequisitesActivityTypeOptionDtoList) {
+            inputModelList.add(convertToModel(prerequisitesActivityTypeOptionDto));
         }
-        List<PrerequisitesActivityTypeOptionModel> updatedModels = prerequisitesActivityTypeOptionService.hardUpdateAll(inputModels);
-        List<PrerequisitesActivityFileTypeOptionDto> dtos = new ArrayList<>();
-        for (PrerequisitesActivityTypeOptionModel prerequisitesActivityTypeOptionModel: updatedModels){
-            dtos.add(convertToDto(prerequisitesActivityTypeOptionModel));
+        List<PrerequisitesActivityTypeOptionModel> updatedModelList = prerequisitesActivityTypeOptionService.hardUpdateAll(inputModelList);
+        List<PrerequisitesActivityTypeOptionDto> updatedDtoList = new ArrayList<>();
+        for (PrerequisitesActivityTypeOptionModel model : updatedModelList) {
+            updatedDtoList.add(convertToDto(model));
         }
-        ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Prerequisites Activity Type Options Hard updated successfully",
-                "OK",
-                200,
-                LocalDateTime.now()
-        );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Prerequisites Activity Type Options", dtos);
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(updatedDtoList, HttpStatus.OK);
     }
 
     /**
-     * Soft deletes a single Prerequisites Activity Type Option by ID
-     * @param id ID of the Prerequisites Activity Type Option to softly delete
-     * @return ResponseEntity containing a Map with the soft deleted PrerequisitesActivityFileTypeOptionDto and ResponseMessageDto
+     * Soft deletes a Prerequisites Activity Type option by ID.
+     * @param id - Prerequisites Activity Type option ID
+     * @return   - Response with success message
      */
-    @Operation(summary = "Soft delete a single Prerequisites Activity Type Option")
-    @PutMapping("/soft/delete/one/{id}")
-    public ResponseEntity<Map<String, Object>> softDeletePrerequisitesActivityTypeOption(@RequestParam Long id){
-        PrerequisitesActivityTypeOptionModel deletedPrerequisitesActivityTypeOptionModel = prerequisitesActivityTypeOptionService.softDeletePrerequisitesActivityTypeOption(id);
-        PrerequisitesActivityFileTypeOptionDto deletedPrerequisitesActivityTypeOptionDto = convertToDto(deletedPrerequisitesActivityTypeOptionModel);
+    @Operation(summary = "Soft delete a single Prerequisites Activity Type option by ID")
+    @PutMapping("/soft/delete/one")
+    public ResponseEntity<Object> softDelete(@RequestParam String id) {
+        PrerequisitesActivityTypeOptionModel deletedModel = prerequisitesActivityTypeOptionService.softDelete(id);
         ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Prerequisites Activity Type Option Soft Deleted successfully",
-                "OK",
-                200,
+                "Prerequisites Activity Type option soft deleted successfully",
+                HttpStatus.OK + "",
                 LocalDateTime.now()
         );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Prerequisites Activity Type Option", deletedPrerequisitesActivityTypeOptionDto);
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(responseMessageDto, HttpStatus.OK);
     }
 
     /**
-     * Hard deletes a single Prerequisites Activity Type Option by ID
-     * @param id ID of the Prerequisites Activity Type Option to hard delete
-     * @return ResponseEntity containing a Map with ResponseMessageDto
+     * Hard deletes a Prerequisites Activity Type option by ID.
+     * @param id - Prerequisites Activity Type option ID
+     * @return   - Response with success message
      */
-    @Operation(summary = "Hard delete a single Prerequisites Activity Type Option Api endpoint")
+    @Operation(summary = "Hard delete a single Prerequisites Activity Type option by ID")
     @GetMapping("/hard/delete/{id}")
-    public ResponseEntity<Map<String, Object>> hardDeletePrerequisitesActivityTypeOption(@RequestParam Long id){
-        prerequisitesActivityTypeOptionService.hardDeletePrerequisitesActivityTypeOption(id);
+    public ResponseEntity<Object> hardDelete(@RequestParam String id) {
+        prerequisitesActivityTypeOptionService.hardDelete(id);
         ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Prerequisites Activity Type Option Hard Deleted Successfully",
-                "OK",
-                204,
+                "Prerequisites activity type option hard deleted successfully",
+                HttpStatus.OK + "",
                 LocalDateTime.now()
         );
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(responseMessageDto, HttpStatus.OK);
     }
 
     /**
-     * Soft deletes multiple Prerequisites Activity Type Options by IDs
-     * @param ids List of Prerequisites Activity Type Option IDs to softly delete
-     * @return ResponseEntity containing a Map with the list of soft deleted PrerequisitesActivityFileTypeOptionDto and ResponseMessageDto
+     * Soft deletes multiple Prerequisites Activity Type options by ID.
+     * @param idList - List of Prerequisites Activity Type option IDs
+     * @return       - Response with success message
      */
-    @Operation(summary = "Soft delete multiple Prerequisites Activity Type Options")
+    @Operation(summary = "Soft delete multiple Prerequisites Activity Type options by ID")
     @PutMapping("/soft/delete/many")
-    public ResponseEntity<Map<String, Object>> softDeletePrerequisitesActivityTypeOptions(@RequestBody List<Long> ids){
-        List<PrerequisitesActivityTypeOptionModel> deletedPrerequisitesActivityTypeOptionModels = prerequisitesActivityTypeOptionService.softDeletePrerequisitesActivityTypeOptions(ids);
-        List<PrerequisitesActivityFileTypeOptionDto> deletedPrerequisitesActivityTypeOptionDtos = new ArrayList<>();
-        for (PrerequisitesActivityTypeOptionModel model: deletedPrerequisitesActivityTypeOptionModels){
-            deletedPrerequisitesActivityTypeOptionDtos.add(convertToDto(model));
-        }
+    public ResponseEntity<Object> softDeleteMany(@Valid @RequestParam("idList") List<String> idList) {
+        List<PrerequisitesActivityTypeOptionModel> deletedModelList = prerequisitesActivityTypeOptionService.softDeleteMany(idList);
         ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Prerequisites Activity Type Options Soft Deleted Successfully",
-                "OK",
-                200,
+                "Prerequisites activity type options soft deleted successfully",
+                HttpStatus.OK + "",
                 LocalDateTime.now()
         );
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("Prerequisites Activity Type Options", deletedPrerequisitesActivityTypeOptionDtos);
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(responseMessageDto, HttpStatus.OK);
     }
 
     /**
-     * Hard deletes multiple Prerequisites Activity Type Options by IDs
-     * @param ids List of Prerequisites Activity Type Option IDs to hard delete
-     * @return ResponseEntity containing a Map with ResponseMessageDto
+     * Hard deletes multiple Prerequisites Activity Type options by ID.
+     * @param idList - List of Prerequisites Activity Type option IDs
+     * @return       - Response with success message
      */
-    @Operation(summary = "Hard delete multiple Prerequisites Activity Type Options")
+    @Operation(summary = "Hard delete multiple Prerequisites Activity Type options by ID")
     @GetMapping("/hard/delete/many")
-    public ResponseEntity<Map<String, Object>> hardDeletePrerequisitesActivityTypeOptions(@RequestBody List<Long> ids){
-        prerequisitesActivityTypeOptionService.hardDeletePrerequisitesActivityTypeOptions(ids);
+    public ResponseEntity<Object> hardDeleteMany(@Valid @RequestParam("idList") List<String> idList) {
+        prerequisitesActivityTypeOptionService.hardDeleteMany(idList);
         ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Prerequisites Activity Type Options Hard Deleted Successfully",
-                "OK",
-                204,
+                "Prerequisites activity type options hard deleted successfully",
+                HttpStatus.OK + "",
                 LocalDateTime.now()
         );
-        Map<String, Object> response = new HashMap<>();
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(responseMessageDto, HttpStatus.OK);
+    }
+
+    /**
+     * Hard deletes all Prerequisites Activity Type options, including soft-deleted.
+     * @return - Response with success message
+     */
+    @Operation(summary = "Hard delete all Prerequisites Activity Type options")
+    @GetMapping("/hard/delete/all")
+    public ResponseEntity<Object> hardDeleteAll() {
+        prerequisitesActivityTypeOptionService.hardDeleteAll();
+        ResponseMessageDto responseMessageDto = new ResponseMessageDto(
+                "All Prerequisites activity type options hard deleted successfully",
+                HttpStatus.OK + "",
+                LocalDateTime.now()
+        );
+        return new ResponseEntity<>(responseMessageDto, HttpStatus.OK);
     }
 }

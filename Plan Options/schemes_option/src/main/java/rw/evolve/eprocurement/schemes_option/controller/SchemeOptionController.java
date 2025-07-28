@@ -43,11 +43,11 @@ public class SchemeOptionController {
 
     /**
      * Converts SchemeOptionDto to SchemeOptionModel.
-     * @param    - dto SchemeOptionDto to convert
-     * @return   - Converted SchemeOptionModel
+     * @param schemeOptionDto   - dto SchemeOptionDto to convert
+     * @return                  - Converted SchemeOptionModel
      */
-    private SchemeOptionModel convertToModel(SchemeOptionDto dto) {
-        return modelMapper.map(dto, SchemeOptionModel.class);
+    private SchemeOptionModel convertToModel(SchemeOptionDto schemeOptionDto) {
+        return modelMapper.map(schemeOptionDto, SchemeOptionModel.class);
     }
 
     /**
@@ -77,13 +77,13 @@ public class SchemeOptionController {
     @Operation(summary = "Create multiple Scheme options")
     @PostMapping("/create/many")
     public ResponseEntity<Object> saveMany(@Valid @RequestBody List<SchemeOptionDto> schemeOptionDtoList) {
-        List<SchemeOptionModel> schemeOptionModels = new ArrayList<>();
-        for (SchemeOptionDto dto : schemeOptionDtoList) {
-            SchemeOptionModel model = convertToModel(dto);
+        List<SchemeOptionModel> schemeOptionModelList = new ArrayList<>();
+        for (SchemeOptionDto schemeOptionDto : schemeOptionDtoList) {
+            SchemeOptionModel model = convertToModel(schemeOptionDto);
             model.setId(SchemeOptionIdGenerator.generateId());
-            schemeOptionModels.add(model);
+            schemeOptionModelList.add(model);
         }
-        schemeOptionService.saveMany(schemeOptionModels);
+        schemeOptionService.saveMany(schemeOptionModelList);
         ResponseMessageDto responseMessageDto = new ResponseMessageDto(
                 "Scheme options created successfully",
                 HttpStatus.OK + "",
@@ -99,14 +99,9 @@ public class SchemeOptionController {
      */
     @Operation(summary = "Get a single Scheme option by ID")
     @GetMapping("/read/one")
-    public ResponseEntity<Object> readOne(@RequestParam String id) {
+    public ResponseEntity<Object> readOne(@RequestParam("id") String id) {
         SchemeOptionModel model = schemeOptionService.readOne(id);
         SchemeOptionDto schemeOptionDto = convertToDto(model);
-        ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Scheme option retrieved successfully",
-                HttpStatus.OK + "",
-                LocalDateTime.now()
-        );
         return new ResponseEntity<>(schemeOptionDto, HttpStatus.OK);
     }
 
@@ -114,21 +109,15 @@ public class SchemeOptionController {
      * Retrieves all non-deleted Scheme options.
      * @return  - Response with list of Scheme option data
      */
-    @Operation(summary = "Get all non-deleted Scheme options")
+    @Operation(summary = "Get all available Scheme options")
     @GetMapping("/read/all")
     public ResponseEntity<Object> readAll() {
-        List<SchemeOptionModel> schemeOptionModels = schemeOptionService.readAll();
+        List<SchemeOptionModel> schemeOptionModelList = schemeOptionService.readAll();
         List<SchemeOptionDto> schemeOptionDtoList = new ArrayList<>();
-        for (SchemeOptionModel schemeOptionModel : schemeOptionModels) {
+        for (SchemeOptionModel schemeOptionModel : schemeOptionModelList) {
             schemeOptionDtoList.add(convertToDto(schemeOptionModel));
         }
-        ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Scheme options retrieved successfully",
-                HttpStatus.OK + "",
-                LocalDateTime.now()
-        );
         return new ResponseEntity<>(schemeOptionDtoList, HttpStatus.OK);
-
     }
 
     /**
@@ -138,38 +127,27 @@ public class SchemeOptionController {
     @Operation(summary = "Get all Scheme options, including soft-deleted")
     @GetMapping("/read/hard/all")
     public ResponseEntity<Object> hardReadAll() {
-        List<SchemeOptionModel> models = schemeOptionService.hardReadAll();
+        List<SchemeOptionModel> modelList = schemeOptionService.hardReadAll();
         List<SchemeOptionDto> schemeOptionDtoList = new ArrayList<>();
-        for (SchemeOptionModel model : models) {
+        for (SchemeOptionModel model : modelList) {
             schemeOptionDtoList.add(convertToDto(model));
         }
-        ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "All Scheme options retrieved successfully",
-                HttpStatus.OK + "",
-                LocalDateTime.now()
-        );
         return new ResponseEntity<>(schemeOptionDtoList, HttpStatus.OK);
-
     }
 
     /**
-     * Retrieves multiple Scheme options by IDs (excludes soft-deleted).
-     * @param idList - List of Scheme option IDs
+     * Retrieves multiple Scheme options by ID (excludes soft-deleted).
+     * @param idList - List of Scheme option ID
      * @return       - Response with list of Scheme option data
      */
-    @Operation(summary = "Get multiple Scheme options by IDs")
+    @Operation(summary = "Get multiple Scheme options by ID")
     @PostMapping("/read/many")
-    public ResponseEntity<Object> readMany(@Valid @RequestBody List<String> idList) {
-        List<SchemeOptionModel> schemeOptionModels = schemeOptionService.readMany(idList);
+    public ResponseEntity<Object> readMany(@Valid @RequestParam("id_list") List<String> idList) {
+        List<SchemeOptionModel> schemeOptionModelList = schemeOptionService.readMany(idList);
         List<SchemeOptionDto> schemeOptionDtoList = new ArrayList<>();
-        for (SchemeOptionModel model : schemeOptionModels) {
+        for (SchemeOptionModel model : schemeOptionModelList) {
             schemeOptionDtoList.add(convertToDto(model));
         }
-        ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Scheme options retrieved successfully",
-                HttpStatus.OK + "",
-                LocalDateTime.now()
-        );
         return new ResponseEntity<>(schemeOptionDtoList, HttpStatus.OK);
     }
 
@@ -193,29 +171,29 @@ public class SchemeOptionController {
 
     /**
      * Updates multiple Scheme options (excludes soft-deleted).
-     * @param schemeOptionDtoList - a List of updated Scheme option data
-     * @return Response with list - of updated Scheme option data
+     * @param schemeOptionDtoList     - a List of updated Scheme option data
+     * @return Response with list     - of updated Scheme option data
      */
     @Operation(summary = "Update multiple Scheme options")
     @PutMapping("/update/many")
     public ResponseEntity<Object> updateMany(@Valid @RequestBody List<SchemeOptionDto> schemeOptionDtoList) {
-        List<SchemeOptionModel> inputModels = new ArrayList<>();
-        for (SchemeOptionDto dto : schemeOptionDtoList) {
-            inputModels.add(convertToModel(dto));
+        List<SchemeOptionModel> inputModelList = new ArrayList<>();
+        for (SchemeOptionDto schemeOptionDto : schemeOptionDtoList) {
+            inputModelList.add(convertToModel(schemeOptionDto));
         }
-        List<SchemeOptionModel> updatedModels = schemeOptionService.updateMany(inputModels);
-        List<SchemeOptionDto> dtoList = new ArrayList<>();
-        for (SchemeOptionModel model : updatedModels) {
-            dtoList.add(convertToDto(model));
+        List<SchemeOptionModel> updatedModelList = schemeOptionService.updateMany(inputModelList);
+        List<SchemeOptionDto> schemeOptionDtoArrayList = new ArrayList<>();
+        for (SchemeOptionModel model : updatedModelList) {
+            schemeOptionDtoArrayList.add(convertToDto(model));
         }
-        return new ResponseEntity<>(dtoList, HttpStatus.OK);
+        return new ResponseEntity<>(schemeOptionDtoArrayList, HttpStatus.OK);
     }
 
     /**
      * Updates a Scheme option by ID, including soft-deleted.
      *
-     * @param schemeOptionDto - Updated Scheme option data
-     * @return Response with  - updated Scheme option data
+     * @param schemeOptionDto   - Updated Scheme option data
+     * @return Response with    - updated Scheme option data
      */
     @Operation(summary = "Update a single Scheme option by ID, including soft-deleted")
     @PutMapping("/update/hard/one")
@@ -227,22 +205,22 @@ public class SchemeOptionController {
 
     /**
      * Updates all Scheme options, including soft-deleted.
-     * @param schemeOptionDtoList  - List of updated Scheme option data
-     * @return                     - Response with list of updated Scheme option data
+     * @param schemeOptionDtoList   - List of updated Scheme option data
+     * @return                      - Response with list of updated Scheme option data
      */
     @Operation(summary = "Update all Scheme options, including soft-deleted")
     @PutMapping("/update/hard/all")
     public ResponseEntity<Object> hardUpdateAll(@Valid @RequestBody List<SchemeOptionDto> schemeOptionDtoList) {
-        List<SchemeOptionModel> inputModels = new ArrayList<>();
-        for (SchemeOptionDto dto : schemeOptionDtoList) {
-            inputModels.add(convertToModel(dto));
+        List<SchemeOptionModel> inputModelList = new ArrayList<>();
+        for (SchemeOptionDto schemeOptionDto : schemeOptionDtoList) {
+            inputModelList.add(convertToModel(schemeOptionDto));
         }
-        List<SchemeOptionModel> updatedModels = schemeOptionService.hardUpdateAll(inputModels);
-        List<SchemeOptionDto> dtoList = new ArrayList<>();
-        for (SchemeOptionModel model : updatedModels) {
-            dtoList.add(convertToDto(model));
+        List<SchemeOptionModel> updatedModelList = schemeOptionService.hardUpdateAll(inputModelList);
+        List<SchemeOptionDto> updatedSchemeOptionDtoList = new ArrayList<>();
+        for (SchemeOptionModel model : updatedModelList) {
+            updatedSchemeOptionDtoList.add(convertToDto(model));
         }
-        return new ResponseEntity<>(dtoList, HttpStatus.OK);
+        return new ResponseEntity<>(updatedSchemeOptionDtoList, HttpStatus.OK);
     }
 
     /**
@@ -254,7 +232,7 @@ public class SchemeOptionController {
     public ResponseEntity<Object> softDelete(@RequestParam String id){
         SchemeOptionModel deleteSchemeOptionModel = schemeOptionService.softDelete(id);
         ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Procurement type Soft Deleted successfully",
+                "Scheme option Soft Deleted successfully",
                 "OK",
                 LocalDateTime.now()
         );
@@ -279,14 +257,14 @@ public class SchemeOptionController {
     }
 
     /**
-     * Soft deletes multiple Scheme options by IDs.
-     * @param idList    - List of Scheme option IDs
+     * Soft deletes multiple Scheme options by ID.
+     * @param idList    - List of Scheme option IDList
      * @return          - Response with list of soft-deleted Scheme option data
      */
-    @Operation(summary = "Soft delete multiple Scheme options by IDs")
+    @Operation(summary = "Soft delete multiple Scheme options by ID")
     @PutMapping("/soft/delete/many")
-    public ResponseEntity<Object> softDeleteMany(@Valid @RequestBody List<String> idList) {
-        List<SchemeOptionModel> deletedSchemeOptionModels = schemeOptionService.softDeleteMany(idList);
+    public ResponseEntity<Object> softDeleteMany(@Valid @RequestParam("idList") List<String> idList) {
+        List<SchemeOptionModel> deletedSchemeOptionModelList = schemeOptionService.softDeleteMany(idList);
         ResponseMessageDto responseMessageDto = new ResponseMessageDto(
                 "Scheme options soft deleted successfully",
                 HttpStatus.OK + "",
@@ -296,24 +274,24 @@ public class SchemeOptionController {
     }
 
     /**
-     * Hard deletes multiple Scheme options by IDs.
-     * @param idList   - List of Scheme option IDs
+     * Hard deletes multiple Scheme options by ID.
+     * @param idList   - List of Scheme option ID
      * @return         - Response with success message
      */
-    @Operation(summary = "Hard delete multiple Scheme options by IDs")
+    @Operation(summary = "Hard delete multiple Scheme options by ID")
     @GetMapping("/hard/delete/many")
-    public ResponseEntity<Object> hardDeleteMany(@Valid @RequestBody List<String> idList) {
+    public ResponseEntity<Object> hardDeleteMany(@Valid @RequestParam("idList") List<String> idList) {
         schemeOptionService.hardDeleteMany(idList);
         ResponseMessageDto responseMessageDto = new ResponseMessageDto(
                 "All Scheme options hard deleted successfully",
-                HttpStatus.OK + "",
+                HttpStatus.OK.toString(),
                 LocalDateTime.now()
         );
         return new ResponseEntity<>(responseMessageDto, HttpStatus.OK);
     }
     /**
      * Hard deletes all Scheme options, including soft-deleted.
-     * @return Response with success message
+     * @return          - Response with success message
      */
     @Operation(summary = "Hard delete all Scheme options")
     @GetMapping("/hard/delete/all")

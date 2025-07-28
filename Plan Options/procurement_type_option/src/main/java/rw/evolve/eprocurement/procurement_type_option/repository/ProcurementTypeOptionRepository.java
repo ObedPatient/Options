@@ -10,12 +10,13 @@ import rw.evolve.eprocurement.procurement_type_option.model.ProcurementTypeOptio
 import java.util.List;
 
 @Repository
-public interface ProcurementTypeOptionRepository extends JpaRepository<ProcurementTypeOptionModel, Long> {
+public interface ProcurementTypeOptionRepository extends JpaRepository<ProcurementTypeOptionModel, String> {
     /**
      * @param name of the ProcurementTypeOption to check if exists
      * @return True if ProcurementTypeOption exist else false
      */
     boolean existsByName(String name);
+
 
 
     /**

@@ -14,16 +14,16 @@ public interface SchemeOptionRepository extends JpaRepository<SchemeOptionModel,
 
     /**
      * @param name of the SchemeOption to check if exists
-     * @return True if SchemeOption exist else false
+     * @return True   - if SchemeOption exist else false
      */
     boolean existsByName(String name);
 
 
     /**
-     * Retrieves a list of {SchemeOptionModel} entities that have not been soft-deleted.
-     * Only Scheme Options with a null {deletedAt} field are returned.
+     * Retrieves a list of {SchemeOptionModel} model that have not been soft-deleted.
+     * Only Scheme options with a null {deletedAt} field are returned.
      *
-     * @return A list of non-deleted {SchemeOptionModel} entities.
+     * @return    - A list of non-deleted {SchemeOptionModel} entities.
      */
     List<SchemeOptionModel> findByDeletedAtIsNull();
 }

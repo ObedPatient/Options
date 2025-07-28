@@ -1,6 +1,6 @@
 /**
  * REST API controller for managing Procurement Method Options.
- * Provides endpoints for creating, retrieving, deleting and updating procurement Method option data, supporting both soft and hard operations.
+ * Handles CRUD operations for Procurement Method option data with soft and hard delete capabilities.
  */
 package rw.evolve.eprocurement.procurement_method_option.controller;
 
@@ -9,388 +9,299 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import rw.evolve.eprocurement.procurement_method_option.dto.ProcurementMethodOptionDto;
 import rw.evolve.eprocurement.procurement_method_option.dto.ResponseMessageDto;
 import rw.evolve.eprocurement.procurement_method_option.model.ProcurementMethodOptionModel;
 import rw.evolve.eprocurement.procurement_method_option.service.ProcurementMethodOptionService;
+import rw.evolve.eprocurement.procurement_method_option.utils.ProcurementMethodOptionIdGenerator;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
 
 @RestController
 @RequestMapping("api/procurement_method_option")
-@Tag(name = "Procurement Method Option Api")
+@Tag(name = "Procurement Method Option API")
 public class ProcurementMethodOptionController {
-
-    private final ModelMapper modelMapper = new ModelMapper();
 
     @Autowired
     private ProcurementMethodOptionService procurementMethodOptionService;
 
+    private final ModelMapper modelMapper = new ModelMapper();
+
     /**
-     * Converts a ProcurementMethodOptionModel to ProcurementMethodOptionDto.
-     * @param model The ProcurementMethodOptionModel to convert.
-     * @return The converted ProcurementMethodOptionDto.
+     * Converts ProcurementMethodOptionModel to ProcurementMethodOptionDto.
+     * @param model - ProcurementMethodOptionModel to convert
+     * @return      - Converted ProcurementMethodOptionDto
      */
-    private ProcurementMethodOptionDto convertToDto(ProcurementMethodOptionModel model){
+    private ProcurementMethodOptionDto convertToDto(ProcurementMethodOptionModel model) {
         return modelMapper.map(model, ProcurementMethodOptionDto.class);
     }
 
     /**
-     * Converts a ProcurementMethodOptionDto to ProcurementMethodOptionModel.
-     * @param dto The ProcurementMethodOptionDto to convert.
-     * @return The converted ProcurementMethodOptionModel.
+     * Converts ProcurementMethodOptionDto to ProcurementMethodOptionModel.
+     * @param dto - ProcurementMethodOptionDto to convert
+     * @return    - Converted ProcurementMethodOptionModel
      */
-    private ProcurementMethodOptionModel convertToModel(ProcurementMethodOptionDto dto){
+    private ProcurementMethodOptionModel convertToModel(ProcurementMethodOptionDto dto) {
         return modelMapper.map(dto, ProcurementMethodOptionModel.class);
     }
 
     /**
-     * Creates a single procurement Method option
-     * @param procurementMethodOptionDto DTO containing procurement Method option data
-     * @return ResponseEntity containing a Map with the created ProcurementMethodOptionDto and a ResponseMessageDto
+     * Creates a single Procurement Method option with a generated ID.
+     * @param procurementMethodOptionDto - Procurement Method option data
+     * @return                           - Response with success message
      */
-    @Operation(summary = "Create one Procurement Type option Api endpoint")
+    @Operation(summary = "Create a single Procurement Method option")
     @PostMapping("/create/one")
-    public ResponseEntity<Map<String, Object>> createProcurementType(@Valid @RequestBody ProcurementMethodOptionDto procurementMethodOptionDto){
+    public ResponseEntity<Object> save(@Valid @RequestBody ProcurementMethodOptionDto procurementMethodOptionDto) {
         ProcurementMethodOptionModel procurementMethodOptionModel = convertToModel(procurementMethodOptionDto);
-        ProcurementMethodOptionModel createdprocurementMethodOptionModel = procurementMethodOptionService.createProcurementMethod(procurementMethodOptionModel);
-        ProcurementMethodOptionDto createdprocurementMethodOptionDto = convertToDto(createdprocurementMethodOptionModel);
+        procurementMethodOptionModel.setId(ProcurementMethodOptionIdGenerator.generateId());
+        procurementMethodOptionService.save(procurementMethodOptionModel);
         ResponseMessageDto responseMessageDto = new ResponseMessageDto(
                 "Procurement Method option created successfully",
-                "OK",
-                201,
+                HttpStatus.OK.toString(),
                 LocalDateTime.now()
         );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Procurement Method Options", createdprocurementMethodOptionDto);
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(responseMessageDto, HttpStatus.OK);
     }
 
     /**
-     * Creates multiple Procurement Method options
-     * @param procurementMethodOptionDtos List of Procurement Method option DTOs
-     * @return ResponseEntity containing a Map with the created list of ProcurementMethodOptionDto and a ResponseMessageDto
+     * Creates multiple Procurement Method options with generated IDs.
+     * @param procurementMethodOptionDtoList - List of Procurement Method option data
+     * @return                               - Response with success message
      */
-    @Operation(summary = "Create Many Procurement types Api endpoint")
+    @Operation(summary = "Create multiple Procurement Method options")
     @PostMapping("/create/many")
-    public ResponseEntity<Map<String, Object>> createProcurementMethods(@Valid @RequestBody List<ProcurementMethodOptionDto> procurementMethodOptionDtos ){
+    public ResponseEntity<Object> saveMany(@Valid @RequestBody List<ProcurementMethodOptionDto> procurementMethodOptionDtoList) {
         List<ProcurementMethodOptionModel> procurementMethodOptionModels = new ArrayList<>();
-        for (ProcurementMethodOptionDto dto: procurementMethodOptionDtos){
-            procurementMethodOptionModels.add(convertToModel(dto));
+        for (ProcurementMethodOptionDto dto : procurementMethodOptionDtoList) {
+            ProcurementMethodOptionModel model = convertToModel(dto);
+            model.setId(ProcurementMethodOptionIdGenerator.generateId());
+            procurementMethodOptionModels.add(model);
         }
-        List<ProcurementMethodOptionModel> createdModels = procurementMethodOptionService.createProcurementMethods(procurementMethodOptionModels);
-        List<ProcurementMethodOptionDto> createdProcurementMethodDtos = new ArrayList<>();
-        for (ProcurementMethodOptionModel model: createdModels){
-            createdProcurementMethodDtos.add(convertToDto(model));
-        }
-        ResponseMessageDto responseMessage = new ResponseMessageDto(
-                "Procurement Method options Created Successfully",
-                "OK",
-                201,
+        procurementMethodOptionService.saveMany(procurementMethodOptionModels);
+        ResponseMessageDto responseMessageDto = new ResponseMessageDto(
+                "Procurement Method options created successfully",
+                HttpStatus.OK.toString(),
                 LocalDateTime.now()
         );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Procurement Method Options", createdProcurementMethodDtos);
-        response.put("responseMessage", responseMessage);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(responseMessageDto, HttpStatus.OK);
     }
+
     /**
-     * Retrieves a Procurement Method option by its ID, excluding soft-deleted procurement Methods.
-     * @param id The ID of the procurement Method to retrieve, provided as a request parameter.
-     * @return ResponseEntity containing a Map with the ProcurementMethodOptionDto and a ResponseMessageDto
+     * Retrieves a Procurement Method option by ID (excludes soft-deleted).
+     * @param id - Procurement Method option ID
+     * @return   - Response with Procurement Method option data
      */
-    @Operation(summary = "Get One Procurement Method  API")
-    @GetMapping("/read/one/{id}")
-    public ResponseEntity<Map<String, Object>> readOne(@RequestParam("ProcurementMethodOptionId") Long id){
+    @Operation(summary = "Get a single Procurement Method option by ID")
+    @GetMapping("/read/one")
+    public ResponseEntity<Object> readOne(@RequestParam("id") String id) {
         ProcurementMethodOptionModel model = procurementMethodOptionService.readOne(id);
-        ProcurementMethodOptionDto dto = convertToDto(model);
-        ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Procurement Method option Retrieved Successfully",
-                "OK",
-                200,
-                LocalDateTime.now()
-        );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Procurement Method Option", dto);
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+        ProcurementMethodOptionDto procurementMethodOptionDto = convertToDto(model);
+        return new ResponseEntity<>(procurementMethodOptionDto, HttpStatus.OK);
     }
 
     /**
-     * Retrieves all non-deleted Procurement Methods.
-     * @return ResponseEntity containing a Map with a list of ProcurementMethodOptionDto and a ResponseMessageDto
+     * Retrieves all non-deleted Procurement Method options.
+     * @return - Response with list of Procurement Method option data
      */
-    @Operation(summary = "Read all Procurement Methods Api endpoint")
+    @Operation(summary = "Get all non-deleted Procurement Method options")
     @GetMapping("/read/all")
-    public ResponseEntity<Map<String, Object>> readAll(){
+    public ResponseEntity<Object> readAll() {
         List<ProcurementMethodOptionModel> procurementMethodOptionModels = procurementMethodOptionService.readAll();
-        List<ProcurementMethodOptionDto> procurementMethodOptionDtos = new ArrayList<>();
-        for (ProcurementMethodOptionModel procurementMethodOptionModel: procurementMethodOptionModels){
-            procurementMethodOptionDtos.add(convertToDto(procurementMethodOptionModel));
+        List<ProcurementMethodOptionDto> procurementMethodOptionDtoList = new ArrayList<>();
+        for (ProcurementMethodOptionModel procurementMethodOptionModel : procurementMethodOptionModels) {
+            procurementMethodOptionDtoList.add(convertToDto(procurementMethodOptionModel));
         }
-        ResponseMessageDto responseMessage = new ResponseMessageDto(
-                "Procurement Method options Retrieved Successfully",
-                "OK",
-                200,
-                LocalDateTime.now()
-        );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Procurement Method Options", procurementMethodOptionDtos);
-        response.put("responseMessage", responseMessage);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(procurementMethodOptionDtoList, HttpStatus.OK);
     }
 
     /**
-     * Retrieves all Procurement Methods, including soft-deleted ones.
-     * @return ResponseEntity containing a Map with a list of ProcurementMethodDto and a ResponseMessageDto
+     * Retrieves all Procurement Method options, including soft-deleted.
+     * @return - Response with list of all Procurement Method option data
      */
-    @Operation(summary = "Hard read all Procurement Methods Api endpoint")
+    @Operation(summary = "Get all Procurement Method options, including soft-deleted")
     @GetMapping("/read/hard/all")
-    public ResponseEntity<Map<String, Object>> hardReadAll(){
+    public ResponseEntity<Object> hardReadAll() {
         List<ProcurementMethodOptionModel> models = procurementMethodOptionService.hardReadAll();
-        List<ProcurementMethodOptionDto> dtos = new ArrayList<>();
-        for (ProcurementMethodOptionModel model: models){
-            dtos.add(convertToDto(model));
+        List<ProcurementMethodOptionDto> procurementMethodOptionDtoList = new ArrayList<>();
+        for (ProcurementMethodOptionModel model : models) {
+            procurementMethodOptionDtoList.add(convertToDto(model));
         }
-        ResponseMessageDto responseMessage = new ResponseMessageDto(
-                "All Procurement Method option Retrieved Successfully",
-                "OK",
-                200,
-                LocalDateTime.now()
-        );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Procurement Methods  options", dtos);
-        response.put("responseMessage", responseMessage);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(procurementMethodOptionDtoList, HttpStatus.OK);
     }
+
     /**
-     * Retrieves multiple procurement type options  by their IDs, excluding soft-deleted records.
-     * @param ids List of procurement type year IDs
-     * @return ResponseEntity containing a Map with a list of ProcurementTypeOptionDto and a ResponseMessageDto
+     * Retrieves multiple Procurement Method options by IDs (excludes soft-deleted).
+     * @param idList - List of Procurement Method option IDs
+     * @return       - Response with list of Procurement Method option data
      */
-    @Operation(summary = "Retrieve multiple Procurement types year with their Ids Api")
-    @PostMapping("read/many")
-    public ResponseEntity<Map<String, Object>> readMany(@Valid @RequestBody List<Long> ids){
-        List<ProcurementMethodOptionModel> procurementMethodOptionModels = procurementMethodOptionService.readMany(ids);
-        List<ProcurementMethodOptionDto> procurementMethodOptionDtos = new ArrayList<>();
-        for (ProcurementMethodOptionModel model: procurementMethodOptionModels){
-            procurementMethodOptionDtos.add(convertToDto(model));
+    @Operation(summary = "Get multiple Procurement Method options by IDs")
+    @PostMapping("/read/many")
+    public ResponseEntity<Object> readMany(@Valid @RequestParam("idList") List<String> idList) {
+        List<ProcurementMethodOptionModel> procurementMethodOptionModels = procurementMethodOptionService.readMany(idList);
+        List<ProcurementMethodOptionDto> procurementMethodOptionDtoList = new ArrayList<>();
+        for (ProcurementMethodOptionModel model : procurementMethodOptionModels) {
+            procurementMethodOptionDtoList.add(convertToDto(model));
         }
-        ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Procurement Method option Retrieved Successfully",
-                "OK",
-                200,
-                LocalDateTime.now()
-        );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Procurement Method options", procurementMethodOptionDtos);
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(procurementMethodOptionDtoList, HttpStatus.OK);
     }
 
     /**
-     * Updates a Procurement Method by its ID, excluding soft-deleted records.
-     * @param id The ID of the procurement Method year to update
-     * @param procurementMethodOptionDto The updated procurement Method data
-     * @return ResponseEntity containing a Map with the updated ProcurementMethodDto and a ResponseMessageDto
+     * Updates a Procurement Method option by ID (excludes soft-deleted).
+     * @param procurementMethodOptionDto - Updated Procurement Method option data
+     * @return                           - Response with updated Procurement Method option data
      */
-    @Operation(summary = "Update One Procurement Method option year Api")
-    @PutMapping("/update/one/{id}")
-    public ResponseEntity<Map<String, Object>> updateOne(@Valid @RequestParam Long id,
-                                                         @Valid @RequestBody ProcurementMethodOptionDto procurementMethodOptionDto){
-        ProcurementMethodOptionModel procurementMethodOptionModel = procurementMethodOptionService.updateOne(id, convertToModel((procurementMethodOptionDto)));
-        ProcurementMethodOptionDto dto = convertToDto(procurementMethodOptionModel);
-        ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Procurement Method option Year Updated Successfully",
-                "OK",
-                200,
-                LocalDateTime.now()
-        );
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("Procurement Method option", dto);
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+    @Operation(summary = "Update a single Procurement Method option by ID")
+    @PutMapping("/update/one")
+    public ResponseEntity<Object> updateOne(@Valid @RequestBody ProcurementMethodOptionDto procurementMethodOptionDto) {
+        String modelId = procurementMethodOptionDto.getId();
+        ProcurementMethodOptionModel savedModel = procurementMethodOptionService.readOne(modelId);
+        savedModel.setName(procurementMethodOptionDto.getName());
+        savedModel.setDescription(procurementMethodOptionDto.getDescription());
+        procurementMethodOptionService.updateOne(savedModel);
+        ProcurementMethodOptionDto updatedDto = convertToDto(savedModel);
+        return new ResponseEntity<>(updatedDto, HttpStatus.OK);
     }
 
     /**
-     * Updates multiple procurement Method option  based on the provided list of procurement Method option DTOs.
-     * Excludes soft-deleted records from updates.
-     *
-     * @param procurementMethodOptionDtos List of ProcurementMethodDto objects containing updated procurement Method data
-     * @return ResponseEntity containing a Map with the list of updated ProcurementMethodDtos and ResponseMessageEntity
+     * Updates multiple Procurement Method options (excludes soft-deleted).
+     * @param procurementMethodOptionDtoList - List of updated Procurement Method option data
+     * @return                               - Response with list of updated Procurement Method option data
      */
-    @Operation(summary = "Upadate multiple Procurement Method options Api endpoint")
+    @Operation(summary = "Update multiple Procurement Method options")
     @PutMapping("/update/many")
-    public ResponseEntity<Map<String, Object>> updateMany(@Valid @RequestBody List<ProcurementMethodOptionDto> procurementMethodOptionDtos){
+    public ResponseEntity<Object> updateMany(@Valid @RequestBody List<ProcurementMethodOptionDto> procurementMethodOptionDtoList) {
         List<ProcurementMethodOptionModel> inputModels = new ArrayList<>();
-        for (ProcurementMethodOptionDto dto: procurementMethodOptionDtos){
-            inputModels.add(convertToModel(dto));
+        for (ProcurementMethodOptionDto procurementMethodOptionDto : procurementMethodOptionDtoList) {
+            inputModels.add(convertToModel(procurementMethodOptionDto));
         }
-        List<ProcurementMethodOptionModel> updatedModels = procurementMethodOptionService.updateMany((inputModels));
-        List<ProcurementMethodOptionDto> dtos = new ArrayList<>();
-        for (ProcurementMethodOptionModel model: updatedModels){
-            dtos.add(convertToDto(model));
+        List<ProcurementMethodOptionModel> updatedModels = procurementMethodOptionService.updateMany(inputModels);
+        List<ProcurementMethodOptionDto> procurementMethodOptionDtoArrayList = new ArrayList<>();
+        for (ProcurementMethodOptionModel model : updatedModels) {
+            procurementMethodOptionDtoArrayList.add(convertToDto(model));
         }
-        ResponseMessageDto responseMessage = new ResponseMessageDto(
-                "Procurement Methods Updated Successfully",
-                "OK",
-                200,
-                LocalDateTime.now()
-        );
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("Procurement Method options", dtos);
-        response.put("responseMessage", responseMessage);
-        return ResponseEntity.ok(response);
-    }
-    /**
-     * Updates a procurement Method by its ID, including soft-deleted records.
-     *
-     * @param id The ID of the procurement Method to update.
-     * @param procurementMethodOptionDto The updated Procurement Method options data.
-     * @return ResponseEntity containing a Map with the updated ProcurementMethodOptionDto and ResponseMessageEntity
-     */
-    @Operation(summary = "Hard update procurement Method by Id Api endpoint")
-    @PutMapping("/update/hard/one/{id}")
-    public ResponseEntity<Map<String, Object>> hardUpdate(@RequestParam Long id, @Valid @RequestBody ProcurementMethodOptionDto procurementMethodOptionDto){
-        ProcurementMethodOptionModel procurementMethodOptionModel = procurementMethodOptionService.hardUpdateOne(id, convertToModel(procurementMethodOptionDto));
-        ProcurementMethodOptionDto dto = convertToDto(procurementMethodOptionModel);
-        ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Procurement Method Updated Successfully",
-                "OK",
-                200,
-                LocalDateTime.now()
-        );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Procurement Method options", dto);
-        response.put("Response Message", responseMessageDto);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(procurementMethodOptionDtoArrayList, HttpStatus.OK);
     }
 
     /**
-     * Updates all procurement Methods, including soft-deleted records, based on their IDs.
-     *
-     * @param procurementTypeOptionDtos The list of updated Procurement Method options data.
-     * @return ResponseEntity containing a Map with the list of updated ProcurementMethodOptionDtos and ResponseMessageEntity
+     * Updates a Procurement Method option by ID, including soft-deleted.
+     * @param procurementMethodOptionDto - Updated Procurement Method option data
+     * @return                           - Response with updated Procurement Method option data
      */
-    @Operation(summary = "Hard update all procurement Methods")
+    @Operation(summary = "Update a single Procurement Method option by ID, including soft-deleted")
+    @PutMapping("/update/hard/one")
+    public ResponseEntity<Object> hardUpdate(@Valid @RequestBody ProcurementMethodOptionDto procurementMethodOptionDto) {
+        ProcurementMethodOptionModel procurementMethodOptionModel = procurementMethodOptionService.hardUpdate(convertToModel(procurementMethodOptionDto));
+        ProcurementMethodOptionDto updatedDto = convertToDto(procurementMethodOptionModel);
+        return new ResponseEntity<>(updatedDto, HttpStatus.OK);
+    }
+
+    /**
+     * Updates all Procurement Method options, including soft-deleted.
+     * @param procurementMethodOptionDtoList - List of updated Procurement Method option data
+     * @return                               - Response with list of updated Procurement Method option data
+     */
+    @Operation(summary = "Update all Procurement Method options, including soft-deleted")
     @PutMapping("/update/hard/all")
-    public ResponseEntity<Map<String, Object>> hardUpdateAll(@Valid @RequestBody List<ProcurementMethodOptionDto> procurementTypeOptionDtos){
+    public ResponseEntity<Object> hardUpdateAll(@Valid @RequestBody List<ProcurementMethodOptionDto> procurementMethodOptionDtoList) {
         List<ProcurementMethodOptionModel> inputModels = new ArrayList<>();
-        for (ProcurementMethodOptionDto dto: procurementTypeOptionDtos){
+        for (ProcurementMethodOptionDto dto : procurementMethodOptionDtoList) {
             inputModels.add(convertToModel(dto));
         }
         List<ProcurementMethodOptionModel> updatedModels = procurementMethodOptionService.hardUpdateAll(inputModels);
-        List<ProcurementMethodOptionDto> dtos = new ArrayList<>();
-        for (ProcurementMethodOptionModel procurementMethodOptionModel: updatedModels){
-            dtos.add(convertToDto(procurementMethodOptionModel));
+        List<ProcurementMethodOptionDto> procurementMethodOptionDtoArrayList = new ArrayList<>();
+        for (ProcurementMethodOptionModel model : updatedModels) {
+            procurementMethodOptionDtoArrayList.add(convertToDto(model));
         }
-        ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Procurement Methods Hard updated successfully",
-                "OK",
-                200,
-                LocalDateTime.now()
-        );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Procurement Method Options", dtos);
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
-    }
-    /**
-     * Soft deletes a single procurement Method by ID
-     * @param id ID of the procurement Method to softly delete
-     * @return ResponseEntity containing a Map with the soft deleted ProcurementMethodOptionDto and ResponseMessageEntity
-     */
-    @Operation(summary = "Soft delete a single procurement Method")
-    @PutMapping("/soft/delete/one/{id}")
-    public ResponseEntity<Map<String, Object>> softDeleteProcurementTypeOption(@RequestParam Long id){
-        ProcurementMethodOptionModel deletedProcurementMethodOptionModel = procurementMethodOptionService.softDeleteProcurementMethodOption(id);
-        ProcurementMethodOptionDto deletedProcurementMethodOptionDto = convertToDto(deletedProcurementMethodOptionModel);
-        ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Procurement Method Soft Deleted successfully",
-                "OK",
-                200,
-                LocalDateTime.now()
-        );
-        Map<String, Object> response = new HashMap<>();
-        response.put("Procurement Method", deletedProcurementMethodOptionDto);
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(procurementMethodOptionDtoArrayList, HttpStatus.OK);
     }
 
     /**
-     * Hard deletes a single procurement Method by ID
-     * @param id ID of the Procurement Method option to hard delete
-     * @return ResponseEntity containing a Map with ResponseMessageEntity
+     * Soft deletes a Procurement Method option by ID.
+     * @param id - Procurement Method option ID
+     * @return   - Response with success message
      */
-    @Operation(summary = "Hard delete a single procurement Method Api endpoint")
+    @Operation(summary = "Soft delete a single Procurement Method option by ID")
+    @PutMapping("/soft/delete/one")
+    public ResponseEntity<Object> softDelete(@RequestParam String id) {
+        ProcurementMethodOptionModel deletedProcurementMethodOptionModel = procurementMethodOptionService.softDelete(id);
+        ResponseMessageDto responseMessageDto = new ResponseMessageDto(
+                "Procurement Method option soft deleted successfully",
+                HttpStatus.OK.toString(),
+                LocalDateTime.now()
+        );
+        return new ResponseEntity<>(responseMessageDto, HttpStatus.OK);
+    }
+
+    /**
+     * Hard deletes a Procurement Method option by ID.
+     * @param id - Procurement Method option ID
+     * @return   - Response with success message
+     */
+    @Operation(summary = "Hard delete a single Procurement Method option by ID")
     @GetMapping("/hard/delete/{id}")
-    public ResponseEntity<Map<String, Object>> hardDeleteProcurementMethodOption(@RequestParam Long id){
-        procurementMethodOptionService.hardDeleteProcurementMethodOption(id);
+    public ResponseEntity<Object> hardDelete(@RequestParam String id) {
+        procurementMethodOptionService.hardDelete(id);
         ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Procurement Method Hard Deleted Successfully",
-                "OK",
-                204,
+                "Procurement Method option hard deleted successfully",
+                HttpStatus.OK.toString(),
                 LocalDateTime.now()
         );
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(responseMessageDto, HttpStatus.OK);
     }
 
     /**
-     * Soft deletes multiple Procurement Methods by IDs
-     * @param ids List of procurement Method IDs to softly delete
-     * @return ResponseEntity containing a Map with the list of soft deleted ProcurementMethodOptionDto and ResponseMessageEntity
+     * Soft deletes multiple Procurement Method options by IDs.
+     * @param idList - List of Procurement Method option IDs
+     * @return       - Response with success message
      */
-    @Operation(summary = "Soft delete multiple Procurement Method options")
+    @Operation(summary = "Soft delete multiple Procurement Method options by IDs")
     @PutMapping("/soft/delete/many")
-    public ResponseEntity<Map<String, Object>> softDeleteProcurementMethodOptions(@RequestBody List<Long> ids){
-        List<ProcurementMethodOptionModel> deletedProcurementMethodOptionModels = procurementMethodOptionService.softDeleteProcurementMethodOptions(ids);
-        List<ProcurementMethodOptionDto> deletedProcurementMethodOptionDtos = new ArrayList<>();
-        for (ProcurementMethodOptionModel model: deletedProcurementMethodOptionModels){
-            deletedProcurementMethodOptionDtos.add(convertToDto(model));
-        }
+    public ResponseEntity<Object> softDeleteMany(@Valid @RequestParam("idList") List<String> idList) {
+        List<ProcurementMethodOptionModel> deletedProcurementMethodOptionModels = procurementMethodOptionService.softDeleteMany(idList);
         ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Procurement Method Soft Deleted Successfully",
-                "OK",
-                200,
+                "Procurement Method options soft deleted successfully",
+                HttpStatus.OK.toString(),
                 LocalDateTime.now()
         );
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("Procurement Method options", deletedProcurementMethodOptionDtos);
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(responseMessageDto, HttpStatus.OK);
     }
+
     /**
-     * Hard deletes multiple procurement Methods by IDs
-     * @param ids List of Procurement Method options IDs to hard delete
-     * @return ResponseEntity containing a Map with ResponseMessageEntity
+     * Hard deletes multiple Procurement Method options by IDs.
+     * @param idList - List of Procurement Method option IDs
+     * @return       - Response with success message
      */
-    @Operation(summary = "Hard delete multiple procurement Methods")
+    @Operation(summary = "Hard delete multiple Procurement Method options by IDs")
     @GetMapping("/hard/delete/many")
-    public ResponseEntity<Map<String, Object>> hardDeleteProcurementMethodOptions(@RequestBody List<Long> ids){
-        procurementMethodOptionService.hardDeleteProcurementMethodOptions(ids);
+    public ResponseEntity<Object> hardDeleteMany(@Valid @RequestParam("idList") List<String> idList) {
+        procurementMethodOptionService.hardDeleteMany(idList);
         ResponseMessageDto responseMessageDto = new ResponseMessageDto(
-                "Procurement Method hard deleted successfully",
-                "OK",
-                204,
+                "Procurement Method options hard deleted successfully",
+                HttpStatus.OK.toString(),
                 LocalDateTime.now()
         );
-        Map<String, Object> response = new HashMap<>();
-        response.put("responseMessage", responseMessageDto);
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(responseMessageDto, HttpStatus.OK);
     }
 
+    /**
+     * Hard deletes all Procurement Method options, including soft-deleted.
+     * @return - Response with success message
+     */
+    @Operation(summary = "Hard delete all Procurement Method options")
+    @GetMapping("/hard/delete/all")
+    public ResponseEntity<Object> hardDeleteAll() {
+        procurementMethodOptionService.hardDeleteAll();
+        ResponseMessageDto responseMessageDto = new ResponseMessageDto(
+                "All Procurement Method options hard deleted successfully",
+                HttpStatus.OK.toString(),
+                LocalDateTime.now()
+        );
+        return new ResponseEntity<>(responseMessageDto, HttpStatus.OK);
+    }
 }

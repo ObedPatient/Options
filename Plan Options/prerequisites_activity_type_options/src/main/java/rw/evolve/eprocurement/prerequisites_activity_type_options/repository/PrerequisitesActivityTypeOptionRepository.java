@@ -10,7 +10,7 @@ import rw.evolve.eprocurement.prerequisites_activity_type_options.model.Prerequi
 import java.util.List;
 
 @Repository
-public interface PrerequisitesActivityTypeOptionRepository extends JpaRepository<PrerequisitesActivityTypeOptionModel, Long> {
+public interface PrerequisitesActivityTypeOptionRepository extends JpaRepository<PrerequisitesActivityTypeOptionModel, String> {
 
     /**
      * @param name of the PrerequisitesActivityTypeOption to check if exists

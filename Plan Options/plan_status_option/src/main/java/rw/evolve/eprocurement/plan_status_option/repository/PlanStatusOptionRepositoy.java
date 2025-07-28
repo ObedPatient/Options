@@ -10,7 +10,7 @@ import rw.evolve.eprocurement.plan_status_option.model.PlanStatusOptionModel;
 import java.util.List;
 
 @Repository
-public interface PlanStatusOptionRepositoy extends JpaRepository<PlanStatusOptionModel, Long> {
+public interface PlanStatusOptionRepositoy extends JpaRepository<PlanStatusOptionModel, String> {
 
     /**
      * @param name of the PlanStatusOption to check if exists

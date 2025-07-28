@@ -10,7 +10,7 @@ import rw.evolve.eprocurement.account_type_option.model.AccountTypeOptionModel;
 import java.util.List;
 
 @Repository
-public interface AccountTypeOptionRepository extends JpaRepository<AccountTypeOptionModel, Long> {
+public interface AccountTypeOptionRepository extends JpaRepository<AccountTypeOptionModel, String> {
     /**
      * @param name of the AccountTypeOption to check if exists
      * @return True if AccountTypeOption exist else false

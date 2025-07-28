@@ -17,17 +17,16 @@ public class GlobalExceptionHandler {
     /**
      * Handles any exception and returns a standardized error response.
      *
-     * @param e the exception thrown
-     * @return ResponseEntity with ErrorResponseDto as Object.
+     * @param e    - the exception thrown
+     * @return     - ResponseEntity with ErrorResponseDto as Object.
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handleGlobalExceptions(Exception e){
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new ResponseMessageDto(
-                        "Internal Server Error: " + e.getMessage(),
-                        "Error",
-                        500,
+                        e.getMessage(),
+                        HttpStatus.INTERNAL_SERVER_ERROR + "",
                         LocalDateTime.now()
                 ));
     }

@@ -10,13 +10,24 @@ import rw.evolve.eprocurement.procurement_method_option.model.ProcurementMethodO
 import java.util.List;
 
 @Repository
-public interface ProcurementMethodOptionRepository extends JpaRepository<ProcurementMethodOptionModel, Long> {
+public interface ProcurementMethodOptionRepository extends JpaRepository<ProcurementMethodOptionModel, String> {
 
     /**
      * @param name of the ProcurementMethodOption to check if exists
      * @return True if ProcurementMethodOption exist else false
      */
     boolean existsByName(String name);
+
+    /**
+     * Checks if a procurement option exists with the specified name, excluding the model with the given ID
+     * and soft-deleted entities.
+     *
+     * @param name   - the name of the procurement option to check
+     * @param id     - the ID of the procurement option to exclude from the check
+     * @return       - {true} if a procurement option with the given name exists, is not soft-deleted, and has a different ID
+     *               - {false} otherwise
+     */
+    boolean existsByNameAndIdNot(String name, String id);
 
 
     /**
