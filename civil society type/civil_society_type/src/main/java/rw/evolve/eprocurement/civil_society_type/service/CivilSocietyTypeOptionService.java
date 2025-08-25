@@ -6,7 +6,7 @@
 package rw.evolve.eprocurement.civil_society_type.service;
 
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import rw.evolve.eprocurement.civil_society_type.exception.CivilSocietyTypeOptionAlreadyExistException;
 import rw.evolve.eprocurement.civil_society_type.exception.CivilSocietyTypeOptionNotFoundException;
@@ -19,9 +19,9 @@ import java.util.List;
 
 
 @Service
+@AllArgsConstructor
 public class CivilSocietyTypeOptionService {
 
-    @Autowired
     private CivilSocietyTypeOptionRepository civilSocietyTypeOptionRepository;
 
     /**

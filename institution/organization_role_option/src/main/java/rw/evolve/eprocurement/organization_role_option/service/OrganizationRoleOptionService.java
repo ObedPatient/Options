@@ -6,7 +6,7 @@
 package rw.evolve.eprocurement.organization_role_option.service;
 
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import rw.evolve.eprocurement.organization_role_option.exception.OrganizationRoleOptionAlreadyExistException;
 import rw.evolve.eprocurement.organization_role_option.exception.OrganizationRoleOptionNotFoundException;
@@ -19,9 +19,9 @@ import java.util.List;
 
 
 @Service
+@AllArgsConstructor
 public class OrganizationRoleOptionService {
 
-    @Autowired
     private OrganizationRoleOptionRepository organizationRoleOptionRepository;
 
     /**

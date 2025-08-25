@@ -6,7 +6,7 @@
 package rw.evolve.eprocurement.source_of_fund_option.service;
 
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import rw.evolve.eprocurement.source_of_fund_option.exception.SourceOfFundAlreadyExistException;
 import rw.evolve.eprocurement.source_of_fund_option.exception.SourceOfFundNotFoundException;
@@ -18,9 +18,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@AllArgsConstructor
 public class SourceOfFundOptionService {
 
-    @Autowired
     private SourceOfFundOptionRepository sourceOfFundOptionRepository;
 
     /**

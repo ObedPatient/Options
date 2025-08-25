@@ -1,52 +1,65 @@
-/**
- * Service for managing CountryOption entities.
- * Provides functionality to create, read, update, and delete CountryOption data, supporting both
- * soft and hard deletion operations through the corresponding repository.
- */
 package rw.evolve.eprocurement.country.service;
 
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 import rw.evolve.eprocurement.country.exception.CountryOptionAlreadyExistException;
 import rw.evolve.eprocurement.country.exception.CountryOptionNotFoundException;
 import rw.evolve.eprocurement.country.model.CountryOptionModel;
 import rw.evolve.eprocurement.country.repository.CountryOptionRepository;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@AllArgsConstructor
 public class CountryOptionService {
 
-    @Autowired
+
     private CountryOptionRepository countryOptionRepository;
 
+    private static final String EXCEL_FILE_PATH = "src/main/resources/static/country_options.xlsx";
+
     /**
-     * Creates a single Country option model with a generated ID.
+     * Creates a single Country option model with a generated ID and updates the static Excel file.
      *
      * @param countryOptionModel                  - the CountryOptionModel to be created
      * @return                                    - the saved CountryOption model
-     * @throws CountryOptionAlreadyExistException - if a CountryOption with the same name exists
+     * @throws CountryOptionAlreadyExistException - if a CountryOption with the same name, dial code, or code exists
      */
     @Transactional
     public CountryOptionModel save(CountryOptionModel countryOptionModel) {
         if (countryOptionModel == null) {
             throw new NullPointerException("Country option cannot be null");
         }
+        validateCountryOption(countryOptionModel);
         if (countryOptionRepository.existsByName(countryOptionModel.getName())) {
             throw new CountryOptionAlreadyExistException("Country option already exists: " + countryOptionModel.getName());
         }
-        return countryOptionRepository.save(countryOptionModel);
+        if (countryOptionRepository.existsByDialCode(countryOptionModel.getDialCode())) {
+            throw new CountryOptionAlreadyExistException("Country dial code already exists: " + countryOptionModel.getDialCode());
+        }
+        if (countryOptionRepository.existsByCode(countryOptionModel.getCode())) {
+            throw new CountryOptionAlreadyExistException("Country abbreviation already exists: " + countryOptionModel.getCode());
+        }
+        CountryOptionModel savedModel = countryOptionRepository.save(countryOptionModel);
+        updateStaticExcelFile();
+        return savedModel;
     }
 
     /**
-     * Creates multiple Country Option models, each with a unique generated ID.
+     * Creates multiple Country Option models, each with a unique generated ID, and updates the static Excel file.
      *
      * @param countryOptionModelList    - the list of Country option models to be created
      * @return                          - a list of saved Country Option models
      * @throws IllegalArgumentException - if the input list is null or empty
+     * @throws CountryOptionAlreadyExistException - if a CountryOption with the same name, dial code, or code exists
      */
     @Transactional
     public List<CountryOptionModel> saveMany(List<CountryOptionModel> countryOptionModelList) {
@@ -54,11 +67,98 @@ public class CountryOptionService {
             throw new IllegalArgumentException("Country option model list cannot be null or empty");
         }
         for (CountryOptionModel countryOptionModel : countryOptionModelList) {
+            validateCountryOption(countryOptionModel);
             if (countryOptionRepository.existsByName(countryOptionModel.getName())) {
                 throw new CountryOptionAlreadyExistException("Country option already exists: " + countryOptionModel.getName());
             }
+            if (countryOptionRepository.existsByDialCode(countryOptionModel.getDialCode())) {
+                throw new CountryOptionAlreadyExistException("Country dial code already exists: " + countryOptionModel.getDialCode());
+            }
+            if (countryOptionRepository.existsByCode(countryOptionModel.getCode())) {
+                throw new CountryOptionAlreadyExistException("Country abbreviation already exists: " + countryOptionModel.getCode());
+            }
         }
-        return countryOptionRepository.saveAll(countryOptionModelList);
+        List<CountryOptionModel> savedModels = countryOptionRepository.saveAll(countryOptionModelList);
+        updateStaticExcelFile();
+        return savedModels;
+    }
+
+    /**
+     * Validates the country option model for dial code and abbreviation.
+     *
+     * @param countryOptionModel - the CountryOptionModel to validate
+     * @throws IllegalArgumentException - if dial code or abbreviation is invalid
+     */
+    private void validateCountryOption(CountryOptionModel countryOptionModel) {
+        if (countryOptionModel.getDialCode() == null) {
+            throw new IllegalArgumentException("Country dial code cannot be null");
+        }
+        if (!countryOptionModel.getDialCode().matches("\\+[0-9\\s]+")) {
+            throw new IllegalArgumentException("Country dial code must start with '+' followed by digits and optional spaces");
+        }
+        if (countryOptionModel.getCode() == null || countryOptionModel.getCode().length() != 2) {
+            throw new IllegalArgumentException("Country abbreviation must be exactly 2 characters");
+        }
+        if (!countryOptionModel.getCode().matches("[A-Z]{2}")) {
+            throw new IllegalArgumentException("Country abbreviation must contain only uppercase letters");
+        }
+        if (countryOptionModel.getName() == null) {
+            throw new IllegalArgumentException("Country name cannot be null");
+        }
+    }
+
+    /**
+     * Updates the static Excel file with all non-deleted CountryOptionModel entries.
+     *
+     * @throws RuntimeException - if there is an error writing to the file
+     */
+    private void updateStaticExcelFile() {
+        try {
+            List<CountryOptionModel> allModels = countryOptionRepository.findByDeletedAtIsNull();
+            File file = new File(EXCEL_FILE_PATH);
+            file.getParentFile().mkdirs(); // Create directories if they don't exist
+
+            // Create a new workbook and sheet
+            Workbook workbook = new XSSFWorkbook();
+            Sheet sheet = workbook.createSheet("Country Options");
+
+            // Create header row
+            Row headerRow = sheet.createRow(0);
+            String[] headers = {"ID", "Name", "Dial Code", "Code", "Description", "Created At", "Updated At", "Deleted At"};
+            for (int i = 0; i < headers.length; i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(headers[i]);
+            }
+
+            // Populate data rows
+            int rowNum = 1;
+            for (CountryOptionModel model : allModels) {
+                Row row = sheet.createRow(rowNum++);
+                row.createCell(0).setCellValue(model.getId());
+                row.createCell(1).setCellValue(model.getName());
+                row.createCell(2).setCellValue(model.getDialCode());
+                row.createCell(3).setCellValue(model.getCode());
+                row.createCell(4).setCellValue(model.getDescription());
+                row.createCell(5).setCellValue(model.getCreatedAt() != null ? model.getCreatedAt().toString() : "");
+                row.createCell(6).setCellValue(model.getUpdatedAt() != null ? model.getUpdatedAt().toString() : "");
+                row.createCell(7).setCellValue(model.getDeletedAt() != null ? model.getDeletedAt().toString() : "");
+            }
+
+            // Auto-size columns
+            for (int i = 0; i < headers.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+
+            // Write to file
+            try (FileOutputStream fileOut = new FileOutputStream(file)) {
+                workbook.write(fileOut);
+            }
+
+            // Close the workbook
+            workbook.close();
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to write to static Excel file: " + e.getMessage(), e);
+        }
     }
 
     /**
@@ -143,6 +243,7 @@ public class CountryOptionService {
         if (model == null || model.getId() == null) {
             throw new NullPointerException("Country option or ID cannot be null");
         }
+        validateCountryOption(model);
         CountryOptionModel existing = countryOptionRepository.findById(model.getId())
                 .orElseThrow(() -> new CountryOptionNotFoundException("Country option not found with ID: " + model.getId()));
         if (existing.getDeletedAt() != null) {
@@ -167,6 +268,7 @@ public class CountryOptionService {
             if (model.getId() == null) {
                 throw new NullPointerException("Country option ID cannot be null");
             }
+            validateCountryOption(model);
             CountryOptionModel existing = countryOptionRepository.findById(model.getId())
                     .orElseThrow(() -> new CountryOptionNotFoundException("Country option not found with ID: " + model.getId()));
             if (existing.getDeletedAt() != null) {
@@ -188,6 +290,7 @@ public class CountryOptionService {
         if (model == null || model.getId() == null) {
             throw new NullPointerException("Country option or ID cannot be null");
         }
+        validateCountryOption(model);
         return countryOptionRepository.save(model);
     }
 
@@ -201,6 +304,9 @@ public class CountryOptionService {
     public List<CountryOptionModel> hardUpdateAll(List<CountryOptionModel> countryOptionModelList) {
         if (countryOptionModelList == null || countryOptionModelList.isEmpty()) {
             throw new IllegalArgumentException("Country option model list cannot be null or empty");
+        }
+        for (CountryOptionModel model : countryOptionModelList) {
+            validateCountryOption(model);
         }
         return countryOptionRepository.saveAll(countryOptionModelList);
     }

@@ -29,9 +29,17 @@ import java.util.List;
 public class TenderStageOptionController {
 
     @Autowired
-    private TenderStageOptionService tenderStageOptionService;
+    private final TenderStageOptionService tenderStageOptionService;
 
-    private final ModelMapper modelMapper = new ModelMapper();
+    private  ModelMapper modelMapper = new ModelMapper();
+
+    public TenderStageOptionController(
+            TenderStageOptionService tenderStageOptionService,
+            ModelMapper modelMapper
+    ){
+        this.tenderStageOptionService = tenderStageOptionService;
+        this.modelMapper = modelMapper;
+    }
 
     /**
      * Converts TenderStageOptionModel to TenderStageOptionDto.

@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,10 +27,17 @@ import java.util.List;
 @Tag(name = "Tender Status Option API")
 public class TenderStatusOptionController {
 
-    @Autowired
-    private TenderStatusOptionService tenderStatusOptionService;
+    private final TenderStatusOptionService tenderStatusOptionService;
 
-    private final ModelMapper modelMapper = new ModelMapper();
+    private ModelMapper modelMapper = new ModelMapper();
+
+    public TenderStatusOptionController(
+            TenderStatusOptionService tenderStatusOptionService,
+            ModelMapper modelMapper
+    ){
+        this.tenderStatusOptionService = tenderStatusOptionService;
+        this.modelMapper = modelMapper;
+    }
 
     /**
      * Converts TenderStatusOptionModel to TenderStatusOptionDto.

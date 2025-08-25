@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,11 +26,18 @@ import java.util.List;
 @Tag(name = "Language Option API")
 public class LanguageOptionController {
 
-    @Autowired
-    private LanguageOptionService languageOptionService;
+    private final LanguageOptionService languageOptionService;
 
-    private final ModelMapper modelMapper = new ModelMapper();
+    private final ModelMapper modelMapper;
 
+    public LanguageOptionController(
+            LanguageOptionService languageOptionService,
+            ModelMapper modelMapper
+    ){
+        this.languageOptionService = languageOptionService;
+        this.modelMapper = modelMapper;
+
+    }
     /**
      * Converts LanguageOptionModel to LanguageOptionDto.
      * @param model - LanguageOptionModel to convert

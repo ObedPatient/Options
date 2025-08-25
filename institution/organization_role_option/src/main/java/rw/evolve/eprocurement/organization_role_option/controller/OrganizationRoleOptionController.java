@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,10 +27,17 @@ import java.util.List;
 @Tag(name = "Organization Role Option API")
 public class OrganizationRoleOptionController {
 
-    @Autowired
-    private OrganizationRoleOptionService organizationRoleOptionService;
+    private final OrganizationRoleOptionService organizationRoleOptionService;
 
-    private final ModelMapper modelMapper = new ModelMapper();
+    private final ModelMapper modelMapper;
+
+    public OrganizationRoleOptionController(
+            OrganizationRoleOptionService organizationRoleOptionService,
+            ModelMapper modelMapper
+    ){
+        this.organizationRoleOptionService = organizationRoleOptionService;
+        this.modelMapper = modelMapper;
+    }
 
     /**
      * Converts OrganizationRoleOptionModel to OrganizationRoleOptionDto.

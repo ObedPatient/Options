@@ -6,6 +6,7 @@
 package rw.evolve.eprocurement.theme_status.service;
 
 import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import rw.evolve.eprocurement.theme_status.exception.ThemeStatusOptionAlreadyExistException;
@@ -19,10 +20,11 @@ import java.util.List;
 
 
 @Service
+@AllArgsConstructor
 public class ThemeStatusOptionService {
 
-    @Autowired
-    private ThemeStatusOptionRepository themeStatusOptionRepository;
+
+    private final ThemeStatusOptionRepository themeStatusOptionRepository;
 
     /**
      * Creates a single ThemeStatusOption model with a generated ID.

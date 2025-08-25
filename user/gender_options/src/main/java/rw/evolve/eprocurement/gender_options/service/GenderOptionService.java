@@ -6,7 +6,7 @@
 package rw.evolve.eprocurement.gender_options.service;
 
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import rw.evolve.eprocurement.gender_options.exception.GenderOptionAlreadyExistException;
 import rw.evolve.eprocurement.gender_options.exception.GenderOptionNotFoundException;
@@ -19,9 +19,9 @@ import java.util.List;
 
 
 @Service
+@AllArgsConstructor
 public class GenderOptionService {
 
-    @Autowired
     private GenderOptionRepository genderOptionRepository;
 
     /**

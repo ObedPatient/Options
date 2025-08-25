@@ -7,8 +7,8 @@ package rw.evolve.eprocurement.schemes_option.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,10 +27,18 @@ import java.util.List;
 @Tag(name = "Scheme Option API")
 public class SchemeOptionController {
 
-    @Autowired
-    private SchemeOptionService schemeOptionService;
 
-    private final ModelMapper modelMapper = new ModelMapper();
+    private final SchemeOptionService schemeOptionService;
+
+    private ModelMapper modelMapper = new ModelMapper();
+
+    public SchemeOptionController(
+            SchemeOptionService schemeOptionService,
+            ModelMapper modelMapper
+    ){
+        this.schemeOptionService = schemeOptionService;
+        this.modelMapper = modelMapper;
+    }
 
     /**
      * Converts SchemeOptionModel to SchemeOptionDto.

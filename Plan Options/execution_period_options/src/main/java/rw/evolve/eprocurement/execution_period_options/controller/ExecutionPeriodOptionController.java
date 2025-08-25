@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,10 +26,17 @@ import java.util.List;
 @Tag(name = "Execution Period Option API")
 public class ExecutionPeriodOptionController {
 
-    @Autowired
-    private ExecutionPeriodOptionService executionPeriodOptionService;
+    private final ExecutionPeriodOptionService executionPeriodOptionService;
 
-    private final ModelMapper modelMapper = new ModelMapper();
+    private final ModelMapper modelMapper;
+
+    public ExecutionPeriodOptionController(
+            ExecutionPeriodOptionService executionPeriodOptionService,
+            ModelMapper modelMapper
+    ){
+        this.executionPeriodOptionService = executionPeriodOptionService;
+        this.modelMapper = modelMapper;
+    }
 
     /**
      * Converts ExecutionPeriodOptionModel to ExecutionPeriodOptionDto.

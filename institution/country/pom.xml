@@ -42,6 +42,19 @@
 		</dependency>
 		<!-- End of the Spring web dependency -->
 
+		<!-- org.apache.poi Dependency for handling Excel file creation -->
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi</artifactId>
+			<version>5.3.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi-ooxml</artifactId>
+			<version>5.3.0</version>
+		</dependency>
+		<!-- End of org.apache.poi Dependency -->
+
 		<!-- Spring Devtools - to enable hot changes to both client and server processes -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

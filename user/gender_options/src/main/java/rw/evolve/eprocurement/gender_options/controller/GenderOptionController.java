@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,11 +26,17 @@ import java.util.List;
 @Tag(name = "Gender Option API")
 public class GenderOptionController {
 
-    @Autowired
-    private GenderOptionService genderOptionService;
+    private final GenderOptionService genderOptionService;
 
-    private final ModelMapper modelMapper = new ModelMapper();
+    private final ModelMapper modelMapper;
 
+    public GenderOptionController(
+            GenderOptionService genderOptionService,
+            ModelMapper modelMapper
+    ){
+        this.genderOptionService = genderOptionService;
+        this.modelMapper = modelMapper;
+    }
     /**
      * Converts GenderOptionModel to GenderOptionDto.
      * @param model - GenderOptionModel to convert

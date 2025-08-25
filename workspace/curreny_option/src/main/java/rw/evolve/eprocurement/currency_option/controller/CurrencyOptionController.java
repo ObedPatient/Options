@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,10 +26,17 @@ import java.util.List;
 @Tag(name = "Currency Option API")
 public class CurrencyOptionController {
 
-    @Autowired
-    private CurrencyOptionService currencyOptionService;
+    private final CurrencyOptionService currencyOptionService;
 
-    private final ModelMapper modelMapper = new ModelMapper();
+    private final ModelMapper modelMapper;
+
+    public CurrencyOptionController(
+            CurrencyOptionService currencyOptionService,
+            ModelMapper modelMapper
+    ){
+        this.currencyOptionService = currencyOptionService;
+        this.modelMapper = modelMapper;
+    }
 
     /**
      * Converts CurrencyOptionModel to CurrencyOptionDto.

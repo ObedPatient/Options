@@ -1,7 +1,7 @@
 package rw.evolve.eprocurement.account_type_option.service;
 
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import rw.evolve.eprocurement.account_type_option.exception.AccountTypeExistException;
 import rw.evolve.eprocurement.account_type_option.exception.AccountTypeOptionNotFoundException;
@@ -18,9 +18,9 @@ import java.util.List;
  * soft and hard deletion operations through the corresponding repository.
  */
 @Service
+@AllArgsConstructor
 public class AccountTypeOptionService {
 
-    @Autowired
     private AccountTypeOptionRepository accountTypeOptionRepository;
 
     /**

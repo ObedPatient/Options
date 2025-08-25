@@ -29,9 +29,17 @@ import java.util.List;
 public class LotBiddingEligibilityOptionController {
 
     @Autowired
-    private LotBiddingEligibilityOptionService lotBiddingEligibilityOptionService;
+    private final LotBiddingEligibilityOptionService lotBiddingEligibilityOptionService;
 
-    private final ModelMapper modelMapper = new ModelMapper();
+    private ModelMapper modelMapper = new ModelMapper();
+
+    public LotBiddingEligibilityOptionController(
+            LotBiddingEligibilityOptionService lotBiddingEligibilityOptionService,
+            ModelMapper modelMapper
+    ){
+        this.lotBiddingEligibilityOptionService = lotBiddingEligibilityOptionService;
+        this.modelMapper = modelMapper;
+    }
 
     /**
      * Converts LotBiddingEligibilityOptionModel to LotBiddingEligibilityOptionDto.

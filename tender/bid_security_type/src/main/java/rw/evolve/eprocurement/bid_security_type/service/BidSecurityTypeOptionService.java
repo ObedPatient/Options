@@ -6,7 +6,7 @@
 package rw.evolve.eprocurement.bid_security_type.service;
 
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import rw.evolve.eprocurement.bid_security_type.exception.BidSecurityTypeOptionAlreadyExistException;
 import rw.evolve.eprocurement.bid_security_type.exception.BidSecurityTypeOptionNotFoundException;
@@ -19,9 +19,9 @@ import java.util.List;
 
 
 @Service
+@AllArgsConstructor
 public class BidSecurityTypeOptionService {
 
-    @Autowired
     private BidSecurityTypeOptionRepository bidSecurityTypeOptionRepository;
 
     /**

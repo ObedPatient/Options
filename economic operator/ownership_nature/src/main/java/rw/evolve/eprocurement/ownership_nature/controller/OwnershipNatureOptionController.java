@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,10 +27,17 @@ import java.util.List;
 @Tag(name = "Ownership Nature Option API")
 public class OwnershipNatureOptionController {
 
-    @Autowired
-    private OwnershipNatureOptionService ownershipNatureOptionService;
+    private final OwnershipNatureOptionService ownershipNatureOptionService;
 
-    private final ModelMapper modelMapper = new ModelMapper();
+    private  ModelMapper modelMapper = new ModelMapper();
+
+    public OwnershipNatureOptionController(
+            OwnershipNatureOptionService ownershipNatureOptionService,
+            ModelMapper modelMapper
+    ){
+        this.ownershipNatureOptionService = ownershipNatureOptionService;
+        this.modelMapper = modelMapper;
+    }
 
     /**
      * Converts OwnershipNatureOptionModel to OwnershipNatureOptionDto.

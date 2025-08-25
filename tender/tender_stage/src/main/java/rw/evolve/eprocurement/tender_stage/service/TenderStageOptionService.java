@@ -6,7 +6,7 @@
 package rw.evolve.eprocurement.tender_stage.service;
 
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import rw.evolve.eprocurement.tender_stage.exception.TenderStageOptionAlreadyExistException;
 import rw.evolve.eprocurement.tender_stage.exception.TenderStageOptionNotFoundException;
@@ -19,9 +19,9 @@ import java.util.List;
 
 
 @Service
+@AllArgsConstructor
 public class TenderStageOptionService {
 
-    @Autowired
     private TenderStageOptionRepository tenderStageOptionRepository;
 
     /**

@@ -1,6 +1,7 @@
 package rw.evolve.eprocurement.position_option.service;
 
 import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import rw.evolve.eprocurement.position_option.exception.PositionOptionAlreadyExistException;
@@ -18,9 +19,10 @@ import java.util.List;
  * soft and hard deletion operations through the corresponding repository.
  */
 @Service
+@AllArgsConstructor
 public class PositionOptionService {
 
-    @Autowired
+
     private PositionOptionRepository positionOptionRepository;
 
     /**

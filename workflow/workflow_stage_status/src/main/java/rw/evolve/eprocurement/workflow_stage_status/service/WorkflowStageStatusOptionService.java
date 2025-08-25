@@ -6,7 +6,7 @@
 package rw.evolve.eprocurement.workflow_stage_status.service;
 
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import rw.evolve.eprocurement.workflow_stage_status.exception.WorkflowStageStatusOptionAlreadyExistException;
 import rw.evolve.eprocurement.workflow_stage_status.exception.WorkflowStageStatusOptionNotFoundException;
@@ -19,9 +19,9 @@ import java.util.List;
 
 
 @Service
+@AllArgsConstructor
 public class WorkflowStageStatusOptionService {
 
-    @Autowired
     private WorkflowStageStatusOptionRepository workflowStageStatusOptionRepository;
 
     /**

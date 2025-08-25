@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,10 +27,18 @@ import java.util.List;
 @Tag(name = "Workflow Stage Status Option API")
 public class WorkflowStageStatusOptionController {
 
-    @Autowired
-    private WorkflowStageStatusOptionService workflowStageStatusOptionService;
+    private final WorkflowStageStatusOptionService workflowStageStatusOptionService;
 
-    private final ModelMapper modelMapper = new ModelMapper();
+    private  ModelMapper modelMapper = new ModelMapper();
+
+    public WorkflowStageStatusOptionController(
+            WorkflowStageStatusOptionService workflowStageStatusOptionService,
+            ModelMapper modelMapper
+    ){
+        this.workflowStageStatusOptionService = workflowStageStatusOptionService;
+        this.modelMapper = modelMapper;
+
+    }
 
     /**
      * Converts WorkflowStageStatusOptionModel to WorkflowStageStatusOptionDto.

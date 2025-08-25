@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,10 +26,17 @@ import java.util.List;
 @Tag(name = "Account Type Option API")
 public class AccountTypeOptionController {
 
-    @Autowired
-    private AccountTypeOptionService accountTypeOptionService;
+    private final AccountTypeOptionService accountTypeOptionService;
 
-    private final ModelMapper modelMapper = new ModelMapper();
+    private final ModelMapper modelMapper;
+
+    public AccountTypeOptionController(
+            AccountTypeOptionService accountTypeOptionService,
+            ModelMapper modelMapper
+    ){
+        this.accountTypeOptionService = accountTypeOptionService;
+        this.modelMapper = modelMapper;
+    }
 
     /**
      * Converts AccountTypeOptionModel to AccountTypeOptionDto.

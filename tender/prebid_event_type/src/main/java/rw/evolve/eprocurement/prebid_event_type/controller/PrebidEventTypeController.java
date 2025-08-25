@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,10 +26,17 @@ import java.util.List;
 @Tag(name = "Prebid Event Type API")
 public class PrebidEventTypeController {
 
-    @Autowired
-    private PrebidEventTypeService prebidEventTypeService;
+    private final PrebidEventTypeService prebidEventTypeService;
 
-    private final ModelMapper modelMapper = new ModelMapper();
+    private ModelMapper modelMapper = new ModelMapper();
+
+    public PrebidEventTypeController(
+            PrebidEventTypeService prebidEventTypeService,
+            ModelMapper modelMapper
+    ){
+        this.prebidEventTypeService = prebidEventTypeService;
+        this.modelMapper = modelMapper;
+    }
 
     /**
      * Converts PrebidEventTypeModel to PrebidEventTypeDto.

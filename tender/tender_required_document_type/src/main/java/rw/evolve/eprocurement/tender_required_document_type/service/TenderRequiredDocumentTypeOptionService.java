@@ -6,7 +6,7 @@
 package rw.evolve.eprocurement.tender_required_document_type.service;
 
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import rw.evolve.eprocurement.tender_required_document_type.exception.TenderRequiredDocumentTypeAlreadyExistException;
 import rw.evolve.eprocurement.tender_required_document_type.exception.TenderRequiredDocumentTypeNotFoundException;
@@ -19,9 +19,9 @@ import java.util.List;
 
 
 @Service
+@AllArgsConstructor
 public class TenderRequiredDocumentTypeOptionService {
 
-    @Autowired
     private TenderRequiredDocumentTypeRepository tenderRequiredDocumentTypeRepository;
 
     /**

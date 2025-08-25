@@ -6,7 +6,7 @@
 package rw.evolve.eprocurement.execution_period_options.service;
 
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import rw.evolve.eprocurement.execution_period_options.exception.ExecutionPeriodAlreadyExistException;
 import rw.evolve.eprocurement.execution_period_options.exception.ExecutionPeriodNotFoundException;
@@ -18,9 +18,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@AllArgsConstructor
 public class ExecutionPeriodOptionService {
 
-    @Autowired
     private ExecutionPeriodOptionRepository executionPeriodOptionRepository;
 
     /**

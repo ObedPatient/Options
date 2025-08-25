@@ -7,6 +7,7 @@ package rw.evolve.eprocurement.country.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -28,10 +29,18 @@ import java.util.List;
 @Tag(name = "Country Option API")
 public class CountryOptionController {
 
-    @Autowired
-    private CountryOptionService countryOptionService;
 
-    private final ModelMapper modelMapper = new ModelMapper();
+    private final CountryOptionService countryOptionService;
+
+    private ModelMapper modelMapper = new ModelMapper();
+
+    public CountryOptionController(
+            CountryOptionService countryOptionService,
+            ModelMapper modelMapper
+    ){
+        this.countryOptionService = countryOptionService;
+        this.modelMapper = modelMapper;
+    }
 
     /**
      * Converts CountryOptionModel to CountryOptionDto.

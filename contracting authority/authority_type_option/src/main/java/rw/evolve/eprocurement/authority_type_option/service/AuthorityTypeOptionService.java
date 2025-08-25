@@ -6,7 +6,7 @@
 package rw.evolve.eprocurement.authority_type_option.service;
 
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import rw.evolve.eprocurement.authority_type_option.exception.AuthorityTypeOptionAlreadyExistException;
 import rw.evolve.eprocurement.authority_type_option.exception.AuthorityTypeOptionNotFoundException;
@@ -19,9 +19,9 @@ import java.util.List;
 
 
 @Service
+@AllArgsConstructor
 public class AuthorityTypeOptionService {
 
-    @Autowired
     private AuthorityTypeOptionRepository authorityTypeOptionRepository;
 
     /**

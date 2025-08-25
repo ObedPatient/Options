@@ -6,8 +6,8 @@
 package rw.evolve.eprocurement.plan_status_option.service;
 
 import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import rw.evolve.eprocurement.plan_status_option.exception.PlanStatusAlreadExistException;
 import rw.evolve.eprocurement.plan_status_option.exception.PlanStatusNotFoundException;
@@ -19,12 +19,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@AllArgsConstructor
 public class PlanStatusOptionService {
 
-    @Autowired
     private PlanStatusOptionRepositoy planStatusOptionRepositoy;
-
-    private final ModelMapper modelMapper = new ModelMapper();
 
     /**
      * Creates a single PlanStatusOption entity.

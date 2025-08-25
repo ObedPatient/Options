@@ -7,6 +7,7 @@ package rw.evolve.eprocurement.theme_status.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -28,10 +29,14 @@ import java.util.List;
 @Tag(name = "Theme Status Option API")
 public class ThemeStatusOptionController {
 
-    @Autowired
-    private ThemeStatusOptionService themeStatusOptionService;
+    private final ThemeStatusOptionService themeStatusOptionService;
 
-    private final ModelMapper modelMapper = new ModelMapper();
+    private ModelMapper modelMapper = new ModelMapper();
+
+    public ThemeStatusOptionController(ThemeStatusOptionService themeStatusOptionService, ModelMapper modelMapper) {
+        this.themeStatusOptionService = themeStatusOptionService;
+        this.modelMapper = modelMapper;
+    }
 
     /**
      * Converts ThemeStatusOptionModel to ThemeStatusOptionDto.

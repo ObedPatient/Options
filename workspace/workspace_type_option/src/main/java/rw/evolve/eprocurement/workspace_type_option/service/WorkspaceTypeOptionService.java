@@ -6,7 +6,7 @@
 package rw.evolve.eprocurement.workspace_type_option.service;
 
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import rw.evolve.eprocurement.workspace_type_option.exception.WorkspaceTypeOptionAlreadyExistException;
 import rw.evolve.eprocurement.workspace_type_option.exception.WorkspaceTypeOptionNotFoundException;
@@ -19,9 +19,9 @@ import java.util.List;
 
 
 @Service
+@AllArgsConstructor
 public class WorkspaceTypeOptionService {
 
-    @Autowired
     private WorkspaceTypeOptionRepository workspaceTypeOptionRepository;
 
     /**

@@ -7,7 +7,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,10 +26,18 @@ import java.util.List;
 @Tag(name = "Clarification Request Status Option API")
 public class ClarificationRequestStatusOptionController {
 
-    @Autowired
-    private ClarificationRequestStatusOptionService clarificationRequestStatusOptionService;
 
-    private final ModelMapper modelMapper = new ModelMapper();
+    private final ClarificationRequestStatusOptionService clarificationRequestStatusOptionService;
+
+    private ModelMapper modelMapper = new ModelMapper();
+
+    public ClarificationRequestStatusOptionController(
+            ClarificationRequestStatusOptionService clarificationRequestStatusOptionService,
+            ModelMapper modelMapper
+    ){
+        this.clarificationRequestStatusOptionService = clarificationRequestStatusOptionService;
+        this.modelMapper = modelMapper;
+    }
 
     /**
      * Converts ClarificationRequestStatusOptionModel to ClarificationRequestStatusOptionDto.

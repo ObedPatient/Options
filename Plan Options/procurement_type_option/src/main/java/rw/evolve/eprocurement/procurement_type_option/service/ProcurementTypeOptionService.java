@@ -1,8 +1,8 @@
 package rw.evolve.eprocurement.procurement_type_option.service;
 
 import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import rw.evolve.eprocurement.procurement_type_option.exception.ProcurementTypeExistException;
 import rw.evolve.eprocurement.procurement_type_option.exception.ProcurementTypeOptionNotFoundException;
@@ -19,12 +19,10 @@ import java.util.List;
  * soft and hard deletion operations.
  */
 @Service
+@AllArgsConstructor
 public class ProcurementTypeOptionService {
 
-    @Autowired
     private ProcurementTypeOptionRepository procurementTypeOptionRepository;
-
-    private final ModelMapper modelMapper = new ModelMapper();
 
     /**
      * Creates a single Procurement type option model with a generated ID.

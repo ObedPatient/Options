@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,10 +26,17 @@ import java.util.List;
 @Tag(name = "Procurement Progress Option API")
 public class ProcurementProgressOptionController {
 
-    @Autowired
-    private ProcurementProgressOptionService procurementProgressOptionService;
+    private final ProcurementProgressOptionService procurementProgressOptionService;
 
-    private final ModelMapper modelMapper = new ModelMapper();
+    private final ModelMapper modelMapper;
+
+    public ProcurementProgressOptionController(
+            ProcurementProgressOptionService procurementProgressOptionService,
+            ModelMapper modelMapper
+    ){
+        this.procurementProgressOptionService = procurementProgressOptionService;
+        this.modelMapper = modelMapper;
+    }
 
     /**
      * Converts ProcurementProgressOptionModel to ProcurementProgressOptionDto.

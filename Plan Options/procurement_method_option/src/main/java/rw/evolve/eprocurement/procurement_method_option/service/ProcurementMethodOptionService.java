@@ -6,7 +6,7 @@
 package rw.evolve.eprocurement.procurement_method_option.service;
 
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import rw.evolve.eprocurement.procurement_method_option.exception.ProcurementMethodNotFoundException;
 import rw.evolve.eprocurement.procurement_method_option.exception.ProcurementMethodOptionAlreadyExistException;
@@ -18,9 +18,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@AllArgsConstructor
 public class ProcurementMethodOptionService {
 
-    @Autowired
     private ProcurementMethodOptionRepository procurementMethodOptionRepository;
 
     /**

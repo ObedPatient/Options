@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,11 +26,17 @@ import java.util.List;
 @Tag(name = "Unit of Measure Option API")
 public class UnitOfMeasureOptionController {
 
-    @Autowired
-    private UnitOfMeasureOptionService unitOfMeasureOptionService;
+    private final UnitOfMeasureOptionService unitOfMeasureOptionService;
 
-    private final ModelMapper modelMapper = new ModelMapper();
+    private final ModelMapper modelMapper;
 
+    public UnitOfMeasureOptionController(
+            UnitOfMeasureOptionService unitOfMeasureOptionService,
+            ModelMapper modelMapper
+    ){
+        this.unitOfMeasureOptionService = unitOfMeasureOptionService;
+        this.modelMapper = modelMapper;
+    }
     /**
      * Converts UnitOfMeasureOptionModel to UnitOfMeasureOptionDto.
      * @param model - UnitOfMeasureOptionModel to convert

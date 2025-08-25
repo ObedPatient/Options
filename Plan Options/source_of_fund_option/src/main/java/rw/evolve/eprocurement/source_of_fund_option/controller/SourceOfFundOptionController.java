@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,11 +26,17 @@ import java.util.List;
 @Tag(name = "Source of Fund Option API")
 public class SourceOfFundOptionController {
 
-    @Autowired
-    private SourceOfFundOptionService sourceOfFundOptionService;
+    private final SourceOfFundOptionService sourceOfFundOptionService;
 
-    private final ModelMapper modelMapper = new ModelMapper();
+    private final ModelMapper modelMapper;
 
+    public SourceOfFundOptionController(
+            SourceOfFundOptionService sourceOfFundOptionService,
+            ModelMapper modelMapper
+    ){
+        this.sourceOfFundOptionService = sourceOfFundOptionService;
+        this.modelMapper = modelMapper;
+    }
     /**
      * Converts SourceOfFundOptionModel to SourceOfFundOptionDto.
      * @param model - SourceOfFundOptionModel to convert

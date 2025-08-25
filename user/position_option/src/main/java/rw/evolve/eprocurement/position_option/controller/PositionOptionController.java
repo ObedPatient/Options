@@ -28,10 +28,18 @@ import java.util.List;
 @Tag(name = "Position Option API")
 public class PositionOptionController {
 
-    @Autowired
-    private PositionOptionService positionOptionService;
 
-    private final ModelMapper modelMapper = new ModelMapper();
+    private final PositionOptionService positionOptionService;
+
+    private ModelMapper modelMapper = new ModelMapper();
+
+    public PositionOptionController(
+            PositionOptionService positionOptionService,
+            ModelMapper modelMapper
+    ){
+        this.positionOptionService = positionOptionService;
+        this.modelMapper = modelMapper;
+    }
 
     /**
      * Converts PositionOptionModel to PositionOptionDto.

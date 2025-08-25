@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,11 +27,17 @@ import java.util.List;
 @Tag(name = "Authority Type Option API")
 public class AuthorityTypeOptionController {
 
-    @Autowired
-    private AuthorityTypeOptionService authorityTypeOptionService;
+    private final AuthorityTypeOptionService authorityTypeOptionService;
 
-    private final ModelMapper modelMapper = new ModelMapper();
+    private final ModelMapper modelMapper;
 
+    public AuthorityTypeOptionController(
+            AuthorityTypeOptionService authorityTypeOptionService,
+            ModelMapper modelMapper
+    ){
+        this.authorityTypeOptionService = authorityTypeOptionService;
+        this.modelMapper = modelMapper;
+    }
     /**
      * Converts AuthorityTypeOptionModel to AuthorityTypeOptionDto.
      * @param model - AuthorityTypeOptionModel to convert

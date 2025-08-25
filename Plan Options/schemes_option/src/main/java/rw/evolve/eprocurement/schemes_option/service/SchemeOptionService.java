@@ -6,7 +6,7 @@
 package rw.evolve.eprocurement.schemes_option.service;
 
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import rw.evolve.eprocurement.schemes_option.exception.SchemeAlreadyExistException;
 import rw.evolve.eprocurement.schemes_option.exception.SchemeNotFoundException;
@@ -18,10 +18,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@AllArgsConstructor
 public class SchemeOptionService {
 
-    @Autowired
-    private SchemeOptionRepository schemeOptionRepository;
+
+    private final SchemeOptionRepository schemeOptionRepository;
 
     /**
      * Creates a single Scheme option model with a generated ID.

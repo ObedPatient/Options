@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,10 +26,17 @@ import java.util.List;
 @Tag(name = "Procurement Method Option API")
 public class ProcurementMethodOptionController {
 
-    @Autowired
-    private ProcurementMethodOptionService procurementMethodOptionService;
+    private final ProcurementMethodOptionService procurementMethodOptionService;
 
-    private final ModelMapper modelMapper = new ModelMapper();
+    private final ModelMapper modelMapper;
+
+    public ProcurementMethodOptionController(
+            ProcurementMethodOptionService procurementMethodOptionService,
+            ModelMapper modelMapper
+    ){
+        this.procurementMethodOptionService = procurementMethodOptionService;
+        this.modelMapper = modelMapper;
+    }
 
     /**
      * Converts ProcurementMethodOptionModel to ProcurementMethodOptionDto.

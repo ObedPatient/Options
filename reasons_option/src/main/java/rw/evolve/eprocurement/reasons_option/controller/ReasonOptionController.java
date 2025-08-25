@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,10 +27,18 @@ import java.util.List;
 @Tag(name = "Reason Option API")
 public class ReasonOptionController {
 
-    @Autowired
-    private ReasonOptionService reasonOptionService;
 
-    private final ModelMapper modelMapper = new ModelMapper();
+    private final ReasonOptionService reasonOptionService;
+
+    private ModelMapper modelMapper = new ModelMapper();
+
+    public ReasonOptionController(
+            ReasonOptionService reasonOptionService,
+            ModelMapper modelMapper
+    ){
+        this.reasonOptionService = reasonOptionService;
+        this.modelMapper = modelMapper;
+    }
 
     /**
      * Converts ReasonOptionModel to ReasonOptionDto.

@@ -1,7 +1,7 @@
 package rw.evolve.eprocurement.procurement_requisition_status.service;
 
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import rw.evolve.eprocurement.procurement_requisition_status.exception.ProcurementRequisitionStatusOptionAlreadyExistException;
 import rw.evolve.eprocurement.procurement_requisition_status.exception.ProcurementRequisitionStatusOptionNotFoundException;
@@ -18,9 +18,9 @@ import java.util.List;
  * soft and hard deletion operations through the corresponding repository.
  */
 @Service
+@AllArgsConstructor
 public class ProcurementRequisitionStatusOptionService {
 
-    @Autowired
     private ProcurementRequisitionStatusOptionRepository procurementRequisitionStatusOptionRepository;
 
     /**

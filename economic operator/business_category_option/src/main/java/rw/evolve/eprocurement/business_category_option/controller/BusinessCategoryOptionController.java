@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,10 +27,17 @@ import java.util.List;
 @Tag(name = "Business Category Option API")
 public class BusinessCategoryOptionController {
 
-    @Autowired
-    private BusinessCategoryOptionService businessCategoryOptionService;
+    private final BusinessCategoryOptionService businessCategoryOptionService;
 
-    private final ModelMapper modelMapper = new ModelMapper();
+    private final ModelMapper modelMapper;
+
+    public BusinessCategoryOptionController(
+            BusinessCategoryOptionService businessCategoryOptionService,
+            ModelMapper modelMapper
+    ){
+        this.businessCategoryOptionService = businessCategoryOptionService;
+        this.modelMapper = modelMapper;
+    }
 
     /**
      * Converts BusinessCategoryOptionModel to BusinessCategoryOptionDto.

@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,10 +27,17 @@ import java.util.List;
 @Tag(name = "Workspace Type Option API")
 public class WorkspaceTypeOptionController {
 
-    @Autowired
-    private WorkspaceTypeOptionService workspaceTypeOptionService;
+    private final WorkspaceTypeOptionService workspaceTypeOptionService;
 
-    private final ModelMapper modelMapper = new ModelMapper();
+    private final ModelMapper modelMapper;
+
+    public WorkspaceTypeOptionController(
+            WorkspaceTypeOptionService workspaceTypeOptionService,
+            ModelMapper modelMapper
+    ){
+        this.workspaceTypeOptionService = workspaceTypeOptionService;
+        this.modelMapper = modelMapper;
+    }
 
     /**
      * Converts WorkspaceTypeOptionModel to WorkspaceTypeOptionDto.

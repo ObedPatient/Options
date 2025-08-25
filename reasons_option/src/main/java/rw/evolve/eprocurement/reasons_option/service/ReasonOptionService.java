@@ -6,7 +6,7 @@
 package rw.evolve.eprocurement.reasons_option.service;
 
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import rw.evolve.eprocurement.reasons_option.exception.ReasonAlreadyExistException;
 import rw.evolve.eprocurement.reasons_option.exception.ReasonNotFoundException;
@@ -19,9 +19,10 @@ import java.util.List;
 
 
 @Service
+@AllArgsConstructor
 public class ReasonOptionService {
 
-    @Autowired
+
     private ReasonOptionRepository reasonOptionRepository;
 
     /**

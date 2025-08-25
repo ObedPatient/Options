@@ -1,7 +1,7 @@
 package rw.evolve.eprocurement.business_category_option.service;
 
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import rw.evolve.eprocurement.business_category_option.exception.BusinessCategoryOptionAlreadyExistException;
 import rw.evolve.eprocurement.business_category_option.exception.BusinessCategoryOptionNotFoundException;
@@ -18,10 +18,11 @@ import java.util.List;
  * soft and hard deletion operations through the corresponding repository.
  */
 @Service
+@AllArgsConstructor
 public class BusinessCategoryOptionService {
 
-    @Autowired
     private BusinessCategoryOptionRepository businessCategoryOptionRepository;
+
 
     /**
      * Creates a single BusinessCategoryOption model with a generated ID.

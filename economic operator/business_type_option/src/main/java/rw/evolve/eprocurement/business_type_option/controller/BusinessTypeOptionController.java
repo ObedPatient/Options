@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,10 +27,17 @@ import java.util.List;
 @Tag(name = "Business Type Option API")
 public class BusinessTypeOptionController {
 
-    @Autowired
-    private BusinessTypeOptionService businessTypeOptionService;
+    private final BusinessTypeOptionService businessTypeOptionService;
 
-    private final ModelMapper modelMapper = new ModelMapper();
+    private final ModelMapper modelMapper;
+
+    public BusinessTypeOptionController(
+            BusinessTypeOptionService businessTypeOptionService,
+            ModelMapper modelMapper
+    ){
+        this.businessTypeOptionService = businessTypeOptionService;
+        this.modelMapper = modelMapper;
+    }
 
     /**
      * Converts BusinessTypeOptionModel to BusinessTypeOptionDto.

@@ -3,10 +3,10 @@
  * Provides functionality to create, read, update, and delete PrerequisitesActivityTypeOption data, supporting both
  * soft and hard deletion operations through the corresponding repository.
  */
-        package rw.evolve.eprocurement.prerequisites_activity_type_options.service;
+package rw.evolve.eprocurement.prerequisites_activity_type_options.service;
 
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import rw.evolve.eprocurement.prerequisites_activity_type_options.exception.PrerequisitesActivictyTypeAlreadyExistException;
 import rw.evolve.eprocurement.prerequisites_activity_type_options.exception.PrerequisitesActivityFileTypeNotFoundException;
@@ -18,9 +18,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@AllArgsConstructor
 public class PrerequisitesActivityTypeOptionService {
 
-    @Autowired
     private PrerequisitesActivityTypeOptionRepository prerequisitesActivityTypeOptionRepository;
 
     /**

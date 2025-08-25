@@ -23,6 +23,12 @@ public class CountryOptionModel extends GeneralTimestampBaseModel {
     @EqualsAndHashCode.Include
     private String name;
 
+    @Column(name = "dial_code", nullable = false)
+    private String dialCode;
+
+    @Column(name = "code", nullable = false)
+    private String code;
+
     @Column(name = "description")
     private String description;
 }

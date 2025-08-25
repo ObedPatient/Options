@@ -6,6 +6,7 @@
 package rw.evolve.eprocurement.prebid_event_type.service;
 
 import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import rw.evolve.eprocurement.prebid_event_type.exception.PrebidEventTypeAlreadyExistException;
@@ -19,9 +20,9 @@ import java.util.List;
 
 
 @Service
+@AllArgsConstructor
 public class PrebidEventTypeService {
 
-    @Autowired
     private PrebidEventTypeRepository prebidEventTypeRepository;
 
     /**

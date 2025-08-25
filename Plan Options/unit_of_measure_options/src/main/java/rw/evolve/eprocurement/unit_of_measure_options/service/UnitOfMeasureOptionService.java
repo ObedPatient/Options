@@ -6,7 +6,7 @@
 package rw.evolve.eprocurement.unit_of_measure_options.service;
 
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import rw.evolve.eprocurement.unit_of_measure_options.exception.UnitOfMeasureAlreadyExistException;
 import rw.evolve.eprocurement.unit_of_measure_options.exception.UnitOfMeasureNotFoundException;
@@ -18,9 +18,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@AllArgsConstructor
 public class UnitOfMeasureOptionService {
 
-    @Autowired
     private UnitOfMeasureOptionRepository unitOfMeasureOptionRepository;
 
     /**

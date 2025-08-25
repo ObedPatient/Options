@@ -1,7 +1,12 @@
+/**
+ * Service for managing ClarificationRequestStatusOption model.
+ * Provides functionality to create, read, update, and delete ClarificationRequestStatusOption data, supporting both
+ * soft and hard deletion operations through the corresponding repository.
+ */
 package rw.evolve.eprocurement.clarification_request_status_option.service;
 
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import rw.evolve.eprocurement.clarification_request_status_option.exception.ClarificationRequestStatusAlreadyExistException;
 import rw.evolve.eprocurement.clarification_request_status_option.exception.ClarificationRequestStatusNotFoundException;
@@ -12,15 +17,12 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Service for managing ClarificationRequestStatusOption model.
- * Provides functionality to create, read, update, and delete ClarificationRequestStatusOption data, supporting both
- * soft and hard deletion operations through the corresponding repository.
- */
+
 @Service
+@AllArgsConstructor
 public class ClarificationRequestStatusOptionService {
 
-    @Autowired
+
     private ClarificationRequestStatusOptionRepository clarificationRequestStatusOptionRepository;
 
     /**
